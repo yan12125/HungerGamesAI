@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-tw">
+  <head>
+    <meta charset="utf-8">
+    <title>Prototype</title>
+    <style>
+
+      /**
+       * 如果瀏覽器可視範圍不夠大，則直接截掉超出的部分。
+       */
+      body { overflow: hidden; }
+
+      /**
+       * 一個用來放所有遊戲畫面的容器
+       */
+      #game { position: absolute; top:30px; left: 0; z-index:-100; width: 780px; height: 780px; }
+
+      #gridsContainer { position: absolute; z-index: -10; }
+      #gridsContainer > div { height: 59px; width: 59px;
+                                   margin-bottom: 1px; margin-right: 1px;
+                                   float: left; background: #bada77;
+									background-size: 100% 100%;		}
+      #gridsContainer > div:nth-child(odd) { background: #a9c844; }
+      #gridsContainer > div.active { background: #c9e854; }
+	    #gridsContainer > div.vwall { background-image:url('v_wall.jpg');
+								background-size: 100% 100%;}
+	    #gridsContainer > div.nvwall{ background-image:url('nvwall.jpg');}
+	    #gridsContainer > div.tool{ background: #bada77; }
+		#gridsContainer > div.tool:nth-child(odd){ background: #a9c844; }
+      #gridsContainer > div.bomb { background-image:url('waterball.png');opacity:1;}
+      #gridsContainer > div.bombed {background-image:url('water_bombed.jpg');opacity:0.6;}
+
+      #playersContainer { position: absolute; z-index: 10; }
+      #playersContainer > div {
+        font-size: 18px;
+        position: absolute;
+        z-index: 100;
+        height: 50px;
+        width: 50px;
+        opacity: 1;
+		background-size: 100% 100%;	}
+#playersContainer > div.penetrate > div { padding-top: 15px; }
+#playersContainer > div.penetrate { margin-top: -5px; }
+#playersContainer > div.penetrate::before {
+content: "";
+position: absolute;
+top: 90%;
+width: 50px;
+height: 20px;
+background-image:url('ufo.png');
+}
+
+
+      #system-log { position: fixed; bottom: 0; left: 0; height: 256px; width: 780px; color: blue; }
+      #connect-button { position: relative; z-index: 100px; }
+      #timers { position: absolute; left: 820px; top: 50px; font-size: 25px; color: red; }
+      #timer-alive-wrap { display: none; }
+      #timer-ufo-wrap { display: none; }
+    </style>
+  </head>
+  <body>
+
+    <div id="buttondiv"><button id="connect-button">連線！</button></div>
+
+    <!-- 放置所有遊戲物件的容器 -->
+    <div id="game">
+
+      <!-- 顯示 13 * 13 個方格子 -->
+      <div id="gridsContainer"></div>
+
+      <!-- 顯示玩家 -->
+      <div id="playersContainer"></div>
+
+    </div>
+
+    <!-- 計時器 for 剛進場的無敵時間、穿牆倒數計時 etc -->
+    <div id="timers">
+      <div id="timer-preparing"></div><br />
+      <div id="timer-alive-wrap">
+        <img src="alive.png" />
+        <span id="timer-alive"></span><br />
+      </div>
+      <div id="timer-ufo-wrap">
+        <img src="ufo_tool.png" />
+        <span id="timer-ufo"></span><br />
+      </div>
+    </div>
+
+    <!-- 直接 log 在網頁上 -->
+    <div id="system-log"></div>
+
+    <!-- Use the jQuery from google CDN; fallback to local jquery.min.js when offline -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script>window.jQuery||document.write('<script src="jquery.min.js"><\/script>')</script>
+
+    <script src="main.js"></script>
+	<script src="task1.js"></script>
+	<script src="task2.js"></script>
+	<script src="task3.js"></script>
+    <script>
+      (function() {
+        var $logElm = $('#system-log');
+        var logElm = $logElm.get(0);
+        window.log = function(str) {/*
+          var newLine = document.createElement('pre');
+          newLine.textContent = str;
+          $logElm.prepend(newLine);
+          setTimeout(function() { $(newLine).remove(); }, 2100);
+        */}
+      })();
+    </script>
+
+  </body>
+</html>
