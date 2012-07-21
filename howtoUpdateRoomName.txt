@@ -1,0 +1,54 @@
+diff --git a/client/index.html b/client/index.html
+index a735557..6fbc707 100644
+--- a/client/index.html
++++ b/client/index.html
+@@ -57,8 +57,8 @@ background-image:url('ufo.png');
+       #timer-alive-wrap { display: none; }
+       #timer-ufo-wrap { display: none; }
+ 
+-      #checklist > div { color: red; }
+-      #checklist > div.ok { cursor: pointer; color: green; }
++      #checklist > div { color: red; margin: 8px 0; text-decoration: line-through; }
++      #checklist > div.ok { cursor: pointer; color: green; text-decoration: none; font-weight: bold; }
+     </style>
+   </head>
+   <body>
+@@ -77,7 +77,7 @@ background-image:url('ufo.png');
+       <div>140.112.18.195:3001</div>
+       <div>140.112.18.195:3002</div>
+       <div>140.112.18.195:3003</div>
+-      電腦教室:
++      130 電腦教室:
+       <div>140.112.18.196:3000</div>
+       <div>140.112.18.196:3001</div>
+       <div>140.112.18.196:3002</div>
+@@ -99,11 +99,18 @@ background-image:url('ufo.png');
+         for (var i = 0, len = serversElm.length; i < len; i++) {
+           servers.push(serversElm[i].innerHTML);
+ 
+-          (function(___elm){
++          serversElm[i].innerHTML = [
++              '單人測試頻道',
++              '正式頻道1',
++              '正式頻道2',
++              '正式頻道3'
++          ][i % 4];
++
++          (function(i, ___elm){
+             ___elm.addEventListener('click', function() {
+               if (!___elm.classList.contains('ok')) return;
+ 
+-              window.__wshost__ = ___elm.innerHTML;
++              window.__wshost__ = servers[i];
+ 
+               if (ws) {
+                 // console.log('已經連線。');
+@@ -123,7 +130,7 @@ background-image:url('ufo.png');
+                 webSocketInit();
+               }
+             });
+-          })(serversElm[i]);
++          })(i, serversElm[i]);
+ 
+         }
+ 
