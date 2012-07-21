@@ -353,7 +353,7 @@ var ws;
 
 // 送資訊給 server
 function sendObjToServer(obj) {
-    log(obj);
+    // log(obj);
     ws && ws.send(JSON.stringify(obj));
 }
 
@@ -377,7 +377,7 @@ function webSocketInit() {
           if(confirm('遊戲結束。重新載入？'))
 				location.reload();
         }
-        log('WebSocket 關閉了。');
+        // log('WebSocket 關閉了。');
         ws = null;
         map = null;
 		document.getElementById('buttondiv').innerHTML='<button 	id="connect-button">重新載入</button>';
@@ -385,7 +385,7 @@ function webSocketInit() {
     };
 
     ws.onopen = function () {
-        log('WebSocket 開啟了！');
+        // log('WebSocket 開啟了！');
         // 開啓連線以後，傳送自己的暱稱和隊伍給 server 知道
         sendObjToServer({
             event: 'update_player_info',
@@ -413,11 +413,11 @@ function webSocketInit() {
         /***********
          * 來自伺服器的資料 <--- From server
          ***********/
-        log('<< WebSocket 收到訊息: ' + msg);
+        // log('<< WebSocket 收到訊息: ' + msg);
         if (obj.event === 'resp_variables') {
           window.serverVariables = obj.variables;
-          console.log('window.serverVariables');
-          console.log(obj.variables);
+          // console.log('window.serverVariables');
+          // console.log(obj.variables);
         } else if(obj.event === 'game_started') {
           countDown(3, document.getElementById('timer-preparing'));
 		  setTimeout(function(){

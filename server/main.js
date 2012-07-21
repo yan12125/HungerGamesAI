@@ -102,7 +102,7 @@ wsServer.on("request",function(request){
     // console.log(request.requestedProtocols);
     if(request.requestedProtocols[0]=="test"){
         var cc_ = request.accept('test', request.origin);
-        cc_.on('close', function(){ console.log('QQ') });
+        cc_.on('close', function(){ /* console.log('QQ') */ });
         cc_.on('open' , function(){  });
 
         return;

@@ -106,7 +106,7 @@ background-image:url('ufo.png');
               window.__wshost__ = ___elm.innerHTML;
 
               if (ws) {
-                log('已經連線。');
+                // console.log('已經連線。');
               } else {
                 var default_name = '<輸入您的暱稱>';
                 var default_team = '<輸入您的隊伍>';
@@ -119,7 +119,7 @@ background-image:url('ufo.png');
   
                 thisPlayer.elm.innerHTML = '<div style="position:relative; top:100%;">' + thisPlayer.name + '<br>' + thisPlayer.team + '</div>';
   
-                console.log('嘗試建立 WebSocket 連線');
+                // console.log('嘗試建立 WebSocket 連線');
                 webSocketInit();
               }
             });
@@ -133,12 +133,12 @@ background-image:url('ufo.png');
             var ws = new WebSocket('ws://' + __thisServer + '/', 'test');
             ws.onopen = function() {
               ws.onclose = function(){};
-              console.log('ok');
+              // console.log('ok');
               serversElm[i].classList.add('ok');
               ws.close();
             };
             ws.onclose = function(){
-              console.log('gg');
+              // console.log('gg');
               serversElm[i].classList.remove('ok');
             };
 
