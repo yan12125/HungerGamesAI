@@ -353,6 +353,7 @@ var ws;
 
 // 送資訊給 server
 function sendObjToServer(obj) {
+    log(obj);
     ws && ws.send(JSON.stringify(obj));
 }
 
@@ -606,35 +607,35 @@ function bombExplode(bombPower, x, y) {
 function grid_bombed(x, y, status) {
     if ((0 <= x && x <= 12) && (0 <= y && y <= 12)) {
         if (status) {
-            grids[x + y * 13].classList.add('bombed');
+          grids[x + y * 13].classList.add('bombed');
+          if (grids[x + y * 13].classList.contains('tool')){
+            grids[x + y * 13].classList.remove('tool');
+            sendObjToServer({
+              event: 'tool_disappeared',
+              gridc: (x + y * 13)
+            });
+          }
         } else {
-            grids[x + y * 13].classList.remove('bombed');
+          grids[x + y * 13].classList.remove('bombed');
         }
-		if (grids[x + y * 13].classList.contains('tool')){
-			grids[x + y * 13].classList.remove('tool');
-			sendObjToServer({
-				event: 'tool_disappeared',
-				gridc: (x + y * 13)
-			});
-		}
     }
     if (!preparing && (x === Math.floor(thisPlayer.getX() / 60) && y === Math.floor(thisPlayer.getY() / 60))) {
-        sendObjToServer({
-            event: 'player_bombed',
-            playerid: thisPlayer.id
-        });
+      sendObjToServer({
+        event: 'player_bombed',
+        playerid: thisPlayer.id
+      });
     }
     if (status) {
-        setTimeout(function(){
-			grid_bombed(x,y, false);
-			}, 500);
+      setTimeout(function(){
+        grid_bombed(x,y, false);
+      }, 500);
     }
 }
 
 function wall_vanish(x, y) {
-    var pos = x + y * 13;
+  var pos = x + y * 13;
 
-	wallBombard(pos);
+  wallBombard(pos);
 
 }
 
@@ -647,64 +648,64 @@ function countDown(timeout, elm) {
   }
 }
 function toolapply(obj) {
-	if(obj.playerid!=thisPlayer.id)
-		return;
-	var type=obj.tooltype;
-    if(type === 1) { //speed up
-        if(distancePerIteration < 10) distancePerIteration += 1;
-    } else if(type === 2) { // random speed change
-        distancePerIteration = Math.floor(Math.random() * 9) + 2;
-    } else if(type === 3) { //increase bomb
-        if(bomblimit < 5) bomblimit += 1;
-    } else if(type === 4) { //increase bomb power
-        if(myBombingPower < 7) 
-			myBombingPower += 1;
-    } else if(type === 5) {
-		if(penetrate)
-			return;
-        penetrate = true;
-        setTimeout(function () {
-            document.getElementById('timer-ufo-wrap').style.display = 'none';
-            var loop = setInterval(
-            function () {
-                if(!near(thisPlayer.getX(), thisPlayer.getY(), 25)) {
-                    clearInterval(loop);
-                    penetrate = false;
-                    thisPlayerElm.classList.remove('penetrate');
-					sendObjToServer({
-						event:'ufo_removal',
-						playerid: thisPlayer.id
-					});
-                }
-            }, 1000 / 60); // penetration ending process
-        },15000);
-        document.getElementById('timer-ufo-wrap').style.display = 'block';
-        countDown(15, document.getElementById('timer-ufo'));
-        if(obj.playerid != thisPlayer.id) {
-            players.getPlayerById(obj.playerid).elm.classList('penetrate');
-        }
-    } else if(type === 6) {
-		if(preparing)
-			return;
-        preparing = true;
-        document.getElementById('timer-alive-wrap').style.display = 'block';
-        countDown(10, document.getElementById('timer-alive'));
-        setTimeout(function () {
-            document.getElementById('timer-alive-wrap').style.display = 'none';
-            preparing = false;
-        },
-        10000);
+  if(obj.playerid!=thisPlayer.id)
+    return;
+  var type=obj.tooltype;
+  if(type === 1) { //speed up
+    if(distancePerIteration < 10) distancePerIteration += 1;
+  } else if(type === 2) { // random speed change
+    distancePerIteration = Math.floor(Math.random() * 9) + 2;
+  } else if(type === 3) { //increase bomb
+    if(bomblimit < 5) bomblimit += 1;
+  } else if(type === 4) { //increase bomb power
+    if(myBombingPower < 7) 
+      myBombingPower += 1;
+  } else if(type === 5) {
+    if(penetrate)
+      return;
+    penetrate = true;
+    setTimeout(function () {
+      document.getElementById('timer-ufo-wrap').style.display = 'none';
+      var loop = setInterval(
+        function () {
+          if(!near(thisPlayer.getX(), thisPlayer.getY(), 25)) {
+            clearInterval(loop);
+            penetrate = false;
+            thisPlayerElm.classList.remove('penetrate');
+            sendObjToServer({
+              event:'ufo_removal',
+              playerid: thisPlayer.id
+            });
+          }
+        }, 1000 / 60); // penetration ending process
+    },15000);
+    document.getElementById('timer-ufo-wrap').style.display = 'block';
+    countDown(15, document.getElementById('timer-ufo'));
+    if(obj.playerid != thisPlayer.id) {
+      players.getPlayerById(obj.playerid).elm.classList('penetrate');
     }
+  } else if(type === 6) {
+    if(preparing)
+      return;
+    preparing = true;
+    document.getElementById('timer-alive-wrap').style.display = 'block';
+    countDown(10, document.getElementById('timer-alive'));
+    setTimeout(function () {
+      document.getElementById('timer-alive-wrap').style.display = 'none';
+      preparing = false;
+    },
+    10000);
+  }
 }
 
 /** [    END    ] section: bomb manipulation  maintained by yan */
 
 function wallBombard(pos){
-	if (map[pos].type === 'vwall') {
-        map[pos].type = 'empty';
-        map[pos].empty = true;
-        vwallvanish(pos);
-    }
+  if (map[pos].type === 'vwall') {
+    map[pos].type = 'empty';
+    map[pos].empty = true;
+    vwallvanish(pos);
+  }
 }
 
 function vwallvanish(pos){
