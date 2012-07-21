@@ -13,7 +13,7 @@
       /**
        * 一個用來放所有遊戲畫面的容器
        */
-      #game { position: absolute; top:30px; left: 0; z-index:-100; width: 780px; height: 780px; }
+      #game { position: absolute; top:30px; left: 200px; z-index:-100; width: 780px; height: 780px; }
 
       #gridsContainer { position: absolute; z-index: -10; }
       #gridsContainer > div { height: 59px; width: 59px;
@@ -26,7 +26,7 @@
 								background-size: 100% 100%;}
 	    #gridsContainer > div.nvwall{ background-image:url('nvwall.jpg');}
 	    #gridsContainer > div.tool{ background: #bada77; }
-		#gridsContainer > div.tool:nth-child(odd){ background: #a9c844; }
+        #gridsContainer > div.tool:nth-child(odd){ background: #a9c844; }
       #gridsContainer > div.bomb { background-image:url('waterball.png');opacity:1;}
       #gridsContainer > div.bombed {background-image:url('water_bombed.jpg');opacity:0.6;}
 
@@ -52,15 +52,103 @@ background-image:url('ufo.png');
 
 
       #system-log { position: fixed; bottom: 0; left: 0; height: 256px; width: 780px; color: blue; }
-      #connect-button { position: relative; z-index: 100px; }
+      #connect-button { font-size: 16px; padding: 8px; position: relative; z-index: 100px; }
       #timers { position: absolute; left: 820px; top: 50px; font-size: 25px; color: red; }
       #timer-alive-wrap { display: none; }
       #timer-ufo-wrap { display: none; }
+
+      #checklist > div { color: red; }
+      #checklist > div.ok { cursor: pointer; color: green; }
     </style>
   </head>
   <body>
 
-    <div id="buttondiv"><button id="connect-button">連線！</button></div>
+    <div id="buttondiv"></div>
+
+    <!-- server lists -->
+    <div id="checklist">
+      通訊實驗室:
+      <div>140.112.174.174:3000</div>
+      <div>140.112.174.174:3001</div>
+      <div>140.112.174.174:3002</div>
+      <div>140.112.174.174:3003</div>
+      網多實驗室:
+      <div>140.112.18.195:3000</div>
+      <div>140.112.18.195:3001</div>
+      <div>140.112.18.195:3002</div>
+      <div>140.112.18.195:3003</div>
+      電腦教室:
+      <div>140.112.18.196:3000</div>
+      <div>140.112.18.196:3001</div>
+      <div>140.112.18.196:3002</div>
+      <div>140.112.18.196:3003</div>
+      備用伺服器:
+      <div>140.112.49.246:3000</div>
+      <div>140.112.49.246:3001</div>
+      <div>140.112.49.246:3002</div>
+      <div>140.112.49.246:3003</div>
+    </div>
+    <script>
+
+
+      (function() {
+        var serversShowElm = document.getElementById('checklist');
+        var serversElm = document.querySelectorAll('#checklist > div');
+        var servers = [];
+
+        for (var i = 0, len = serversElm.length; i < len; i++) {
+          servers.push(serversElm[i].innerHTML);
+
+          (function(___elm){
+            ___elm.addEventListener('click', function() {
+              if (!___elm.classList.contains('ok')) return;
+
+              window.__wshost__ = ___elm.innerHTML;
+
+              if (ws) {
+                log('已經連線。');
+              } else {
+                var default_name = '<輸入您的暱稱>';
+                var default_team = '<輸入您的隊伍>';
+  
+                thisPlayer.name = prompt('您的暱稱', default_name);
+                if (!thisPlayer.name || thisPlayer.name === default_name) return;
+  
+                thisPlayer.team = prompt('您的隊伍', default_team);
+                if (!thisPlayer.team || thisPlayer.team === default_team) return;
+  
+                thisPlayer.elm.innerHTML = '<div style="position:relative; top:100%;">' + thisPlayer.name + '<br>' + thisPlayer.team + '</div>';
+  
+                console.log('嘗試建立 WebSocket 連線');
+                webSocketInit();
+              }
+            });
+          })(serversElm[i]);
+
+        }
+
+        for (var i = 0, len = serversElm.length; i < len; i++) {
+          (function(i, __thisServer){
+
+            var ws = new WebSocket('ws://' + __thisServer + '/', 'test');
+            ws.onopen = function() {
+              ws.onclose = function(){};
+              console.log('ok');
+              serversElm[i].classList.add('ok');
+              ws.close();
+            };
+            ws.onclose = function(){
+              console.log('gg');
+              serversElm[i].classList.remove('ok');
+            };
+
+          }(i, servers[i]));
+        }
+
+      })();
+
+
+    </script>
 
     <!-- 放置所有遊戲物件的容器 -->
     <div id="game">

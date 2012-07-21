@@ -361,7 +361,7 @@ function webSocketInit() {
 
     if (ws) return;
 
-    ws = new WebSocket('ws://' + location.host + '/', 'game-protocol');
+    ws = new WebSocket('ws://' + __wshost__ + '/', 'game-protocol');
 
     ws.onclose = function (event) {
         if(event.reason === 'error_game_started') {
@@ -555,26 +555,26 @@ function webSocketInit() {
 }
 
 // 連線按鈕，按下去以後搜集使用者資訊並建立 WebSocket 連線
-var connectBtn = document.getElementById('connect-button');
-connectBtn.addEventListener('click', function () {
-    if (ws) {
-        log('已經連線。');
-    } else {
-        var default_name = '<輸入您的暱稱>';
-        var default_team = '<輸入您的隊伍>';
-
-        thisPlayer.name = prompt('您的暱稱', default_name);
-        if (!thisPlayer.name || thisPlayer.name === default_name) return;
-
-        thisPlayer.team = prompt('您的隊伍', default_team);
-        if (!thisPlayer.team || thisPlayer.team === default_team) return;
-
-        thisPlayer.elm.innerHTML = '<div style="position:relative; top:100%;">' + thisPlayer.name + '<br>' + thisPlayer.team + '</div>';
-
-        log('嘗試建立 WebSocket 連線');
-        webSocketInit();
-    }
-});
+// var connectBtn = document.getElementById('connect-button');
+// connectBtn.addEventListener('click', function () {
+//     if (ws) {
+//         log('已經連線。');
+//     } else {
+//         var default_name = '<輸入您的暱稱>';
+//         var default_team = '<輸入您的隊伍>';
+// 
+//         thisPlayer.name = prompt('您的暱稱', default_name);
+//         if (!thisPlayer.name || thisPlayer.name === default_name) return;
+// 
+//         thisPlayer.team = prompt('您的隊伍', default_team);
+//         if (!thisPlayer.team || thisPlayer.team === default_team) return;
+// 
+//         thisPlayer.elm.innerHTML = '<div style="position:relative; top:100%;">' + thisPlayer.name + '<br>' + thisPlayer.team + '</div>';
+// 
+//         log('嘗試建立 WebSocket 連線');
+//         webSocketInit();
+//     }
+// });
 
 // WARNING: CRITICAL SECTION, NO EDITION WITHOUT PRIOR DECLARATION
 /** [    END    ] section: webSocket, message manipulation */
