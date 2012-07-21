@@ -373,7 +373,7 @@ function webSocketInit() {
           players = null;
           distancePerIteration = 5;
           clearInterval(mainRep);
-			if(confirm('遊戲結束。重新載入？'))
+          if(confirm('遊戲結束。重新載入？'))
 				location.reload();
         }
         log('WebSocket 關閉了。');

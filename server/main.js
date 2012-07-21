@@ -77,6 +77,27 @@ app.get('/go', function(req, res) {
   }
 });
 
+// 使用 stdin 取代 HTTP GET 方法
+// 如果使用者在 standard input 輸入 go<Enter> 則遊戲會開始
+var stdin = process.openStdin();
+var __gameStarting = false; // 記錄是否已經輸入過 go 了
+stdin.on('data', function(chunk) {
+  if (chunk.toString().search('go') === 0) {
+    if (!gameStarted && !__gameStarting) {
+      __gameStarting = true; // 避免打太多次 go<Enter> 的問題
+      console.log('[Notice] Hunger Game is starting in 3 seconds...');
+      sendObjToAllClient({ event: 'game_started' });
+      setTimeout(function() {
+        gameStarted = true;
+        toolappear();
+        console.log('[Notice] Hunger Game has been successfully started.');
+      }, 3000);
+    } else {
+      console.log('[Notice] Hunger Game has been started.');
+    }
+  }
+});
+
 app.listen(WEB_SERVER_PORT, function () {
     console.log('Web server starts listening port %d for %s',
     app.address().port, 'HTTP requests and WebSockets');
@@ -174,6 +195,8 @@ wsServer.on('request', function (request) {
       if(howManyPlayers()<=0) {
           iniMap();
           gameStarted = false;
+          __gameStarting = false;
+          console.log('[Notice] Hunger Game ends.');
         }
   });
 

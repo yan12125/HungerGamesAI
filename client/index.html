@@ -86,29 +86,11 @@ background-image:url('ufo.png');
       </div>
     </div>
 
-    <!-- 直接 log 在網頁上 -->
-    <div id="system-log"></div>
-
-    <!-- Use the jQuery from google CDN; fallback to local jquery.min.js when offline -->
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-    <script>window.jQuery||document.write('<script src="jquery.min.js"><\/script>')</script>
-
     <script src="main.js"></script>
 	<script src="task1.js"></script>
 	<script src="task2.js"></script>
 	<script src="task3.js"></script>
-    <script>
-      (function() {
-        var $logElm = $('#system-log');
-        var logElm = $logElm.get(0);
-        window.log = function(str) {/*
-          var newLine = document.createElement('pre');
-          newLine.textContent = str;
-          $logElm.prepend(newLine);
-          setTimeout(function() { $(newLine).remove(); }, 2100);
-        */}
-      })();
-    </script>
+    <script>window.log=function(){}</script>
 
   </body>
 </html>
