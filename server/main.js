@@ -99,6 +99,15 @@ var wsServer = new WebSocketServer({
 var rooms=[];
 var count=0;
 wsServer.on("request",function(request){
+    // console.log(request.requestedProtocols);
+    if(request.requestedProtocols[0]=="test"){
+        var cc_ = request.accept('test', request.origin);
+        cc_.on('close', function(){ console.log('QQ') });
+        cc_.on('open' , function(){  });
+
+        return;
+    }
+
   if(count==0){
     count=commander.number || 3;
     var x=newRoom();
@@ -151,8 +160,10 @@ function newRoom(){
       //!
       wsConnections.push(connection);
       console.log('A WebSocket connection is opened');
-      if(count==1)
+      if(count==1){
         sendObjToAll({ event: 'game_started' });
+        toolappear();
+      }
       // connection.playerInfo 內儲存使用者資訊（ uuid 、昵稱、隊伍編號... ）
       // 預設只有 uuid 用來分辨多個玩家彼此
       connection.playerInfo = {
@@ -392,8 +403,8 @@ function newRoom(){
   }
 
   function toolappear() {
-    if(!gameStarted)
-      return;
+    //if(!gameStarted)
+    //  return;
     setTimeout(toolappear,Math.floor(Math.random() * 5000)+30000);
     var getgrid = randIniPos();
     if (getgrid !== -1) {
