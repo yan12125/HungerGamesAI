@@ -61,20 +61,8 @@ app.configure(function () {
 
 // Express router:
 // for start game
-app.get('/go', function(req, res) {
-	if(!gameStarted){
-		sendObjToAllClient({
-		  event: 'game_started'
-		});
-		setTimeout(function(){
-			gameStarted = true;
-			toolappear();
-			res.send('Game started.\n');
-		},3000);
-	}
-  else {
-    res.send('Game had been started.\n');
-  }
+app.get('/test', function(req, res) {
+  // TODO 回應訊息，表示這一個 ip:port 的伺服器還活著
 });
 
 // 使用 stdin 取代 HTTP GET 方法
