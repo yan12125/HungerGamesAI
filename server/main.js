@@ -65,18 +65,19 @@ var sendObjToAll;
 var __gameStarting = false; // 記錄是否已經輸入過 go 了
 stdin.on('data', function(chunk) {
   if (chunk.toString().search('go') === 0) {
-    if (!gameStarted && !__gameStarting) {
+    // if (!gameStarted && !__gameStarting) {
       __gameStarting = true; // 避免打太多次 go<Enter> 的問題
       console.log('[Notice] Hunger Game is starting in 3 seconds...');
-      //sendObjToAll({ event: 'game_started' });
+      sendObjToAll({ event: 'game_started' });
+      setCount(0);
       setTimeout(function() {
         gameStarted = true;
         //toolappear();
         console.log('[Notice] Hunger Game has been successfully started.');
       }, 3000);
-    } else {
-      console.log('[Notice] Hunger Game has been started.');
-    }
+      //  } else {
+        //    console.log('[Notice] Hunger Game has been started.');
+        //  }
   }
 });
 
@@ -85,38 +86,41 @@ app.listen(WEB_SERVER_PORT, function () {
     app.address().port, 'HTTP requests and WebSockets');
 });
 
-  /**
-  * My webscoket server
-  *
-  *    - Attached the the http web server (express app)
-  *    - Directly communicate with browsers
-  *
-  */
+/**
+* My webscoket server
+*
+*    - Attached the the http web server (express app)
+*    - Directly communicate with browsers
+*
+*/
 var wsServer = new WebSocketServer({
   httpServer: app,
   autoAcceptConnections: false
 });
 var rooms=[];
 var count=0;
+function setCount(n){ count = n };
 wsServer.on("request",function(request){
-    // console.log(request.requestedProtocols);
-    if(request.requestedProtocols[0]=="test"){
-        var cc_ = request.accept('test', request.origin);
-        cc_.on('close', function(){ /* console.log('QQ') */ });
-        cc_.on('open' , function(){  });
+  // console.log(request.requestedProtocols);
+  if(request.requestedProtocols[0]=="test"){
+    var cc_ = request.accept('test', request.origin);
+    cc_.on('close', function(){ /* console.log('QQ') */ });
+    cc_.on('open' , function(){  });
 
-        return;
-    }
+    return;
+  }
+
+  var connection = request.accept('game-protocol', request.origin);
 
   if(count==0){
     count=commander.number || 3;
     var x=newRoom();
     rooms.push(x);
-    x(request);
+    x(connection);
   }
   else{
     var x=rooms[rooms.length-1];
-    x(request);
+    x(connection);
   }
   count--;
 });
@@ -128,7 +132,7 @@ function newRoom(){
   */
   var images = ['red.png', 'orange.png','yellow.png','green.png','blue.png','purple.png'];
   var picCount = [0,2,4,1,3,5];
-  
+
 
 
 
@@ -140,213 +144,213 @@ function newRoom(){
 
 
   //  wsServer.on('request', 
-    var newPlayer = function (request) {
+    var newPlayer = function (connection) {
 
       // Accept the request and then establish a connection
       // Push this connection into a global array
-      var connection = request.accept('game-protocol', request.origin);
+      //var connection = request.accept('game-protocol', request.origin);
       //if(gameStarted) {
-      //  connection.drop(1000, 'error_game_started');
-      //  connection.close();
-      //  return;
-      //}
-      /** ping's addition 
-      if (howManyPlayers() < 1) {
-      iniMap();
-      gameStarted = false;
-      }
-      end of addition */
-      //!
-      //!
-      wsConnections.push(connection);
-      console.log('A WebSocket connection is opened');
-      if(count==1){
-        sendObjToAll({ event: 'game_started' });
-        toolappear();
-      }
-      // connection.playerInfo 內儲存使用者資訊（ uuid 、昵稱、隊伍編號... ）
-      // 預設只有 uuid 用來分辨多個玩家彼此
-      connection.playerInfo = {
-        playerid: uuid.v4()
-      };
+        //  connection.drop(1000, 'error_game_started');
+        //  connection.close();
+        //  return;
+        //}
+        /** ping's addition 
+        if (howManyPlayers() < 1) {
+        iniMap();
+        gameStarted = false;
+        }
+        end of addition */
+        //!
+        //!
+        wsConnections.push(connection);
+        console.log('A WebSocket connection is opened');
+        if(count==1){
+          sendObjToAll({ event: 'game_started' });
+          toolappear();
+        }
+        // connection.playerInfo 內儲存使用者資訊（ uuid 、昵稱、隊伍編號... ）
+        // 預設只有 uuid 用來分辨多個玩家彼此
+        connection.playerInfo = {
+          playerid: uuid.v4()
+        };
 
-      // 一開始當然是活的
-      connection.playerInfo.dead = false;
-      connection.playerInfo.disconnected = false;
+        // 一開始當然是活的
+        connection.playerInfo.dead = false;
+        connection.playerInfo.disconnected = false;
 
-      // 第N個玩家就放第N張圖
-      //console.log(Math.floor(Math.random() * (images.length)));
-      /** TODO image/player correspondence*/
-      connection.playerInfo.image = images[picCount[wsConnections.indexOf(connection)%6]];
+        // 第N個玩家就放第N張圖
+        //console.log(Math.floor(Math.random() * (images.length)));
+        /** TODO image/player correspondence*/
+        connection.playerInfo.image = images[picCount[wsConnections.indexOf(connection)%6]];
 
-      connection.sendUTF(JSON.stringify({
-        event: 'playerid',
-        playerid: connection.playerInfo.playerid,
-        image: connection.playerInfo.image
-      }));
-      connection.sendUTF(JSON.stringify({
-        event: 'map_initial',
-        grids: grids
-      }));
-      connection.sendUTF(JSON.stringify({
-        event: 'pos_initial',
-        pos: randIniPos()
-      }));
+        connection.sendUTF(JSON.stringify({
+          event: 'playerid',
+          playerid: connection.playerInfo.playerid,
+          image: connection.playerInfo.image
+        }));
+        connection.sendUTF(JSON.stringify({
+          event: 'map_initial',
+          grids: grids
+        }));
+        connection.sendUTF(JSON.stringify({
+          event: 'pos_initial',
+          pos: randIniPos()
+        }));
 
-      connection.on('close', function (reasonCode, description) {
-        var idx = wsConnections.indexOf(connection);
-        if (idx !== -1) {
-          // Remove this connection object from the global array
-          // wsConnections.splice(idx, 1);
-          // NOT remove it because others will need dead player's informtion
-          connection.playerInfo.disconnected = true;
-          console.log('Some WebSocket connection is closed');
-          // TODO 告訴所有人，此玩家已經離線
-          if(!connection.playerInfo.dead) {
+        connection.on('close', function (reasonCode, description) {
+          var idx = wsConnections.indexOf(connection);
+          if (idx !== -1) {
+            // Remove this connection object from the global array
+            // wsConnections.splice(idx, 1);
+            // NOT remove it because others will need dead player's informtion
+            connection.playerInfo.disconnected = true;
+            console.log('Some WebSocket connection is closed');
+            // TODO 告訴所有人，此玩家已經離線
+            if(!connection.playerInfo.dead) {
+              sendObjToAllClient({
+                event: 'player_offline',
+                playerid: connection.playerInfo.playerid, 
+                reason: 'just_offline'
+              });
+            }
+          }
+          /** edition by ping 
+          if (wsConnections.length < 1) {
+          iniMap();
+          }
+          /** end of edition*/
+          if(howManyPlayers()<=0) {
+            iniMap();
+            gameStarted = false;
+            __gameStarting = false;
+            console.log('[Notice] Hunger Game ends.');
+          }
+        });
+
+        connection.on('message', function (event) {
+          if (event.type !== 'utf8') return;
+
+          // msg: 收到的字串
+          // obj: 收到的物件 (由 JSON 轉成)
+          var msg, obj;
+          try {
+            msg = event.utf8Data;
+            obj = JSON.parse(msg);
+          } catch (e) {}
+          if (!obj) return;
+
+          // TODO 告訴所有人，此 玩家 已經上線
+          // 剛建立連線時，使用者還不在場上，直到將昵稱和隊伍給 server 確定以後，
+          // server 隨機給予一個起始座標和 uuid ，該玩家才正式開始進入此遊戲場景，
+          // 擁有 3 秒鐘的無敵準備時間
+
+          /**********************************************
+          * TODO
+          * 來自使用者的資料 <--- From client
+          **********************************************/
+          if (obj.event === 'ask_variables') {
+            var playerInfos = [];
+            for(var i=0;i<wsConnections.length;i++) {
+              if(wsConnections[i].playerInfo) {
+                playerInfos.push(wsConnections[i].playerInfo);
+              }
+            }
+            sendObjToClient({
+              event: 'resp_variables', 
+              variables: {
+                grids: grids, 
+                playerInfos: playerInfos
+              }
+            }, connection);
+          } else if (obj.event === 'update_player_info') {
+            // TODO 告訴這個使用者，現在哪些人在線上
+            if (obj.name) connection.playerInfo.name = obj.name;
+            if (obj.team) connection.playerInfo.team = obj.team;
+            var playerInfoList = [];
+            for (var i = 0; i < wsConnections.length; i++) {
+              if(!wsConnections[i].playerInfo.disconnected) {
+                playerInfoList.push(wsConnections[i].playerInfo);
+              }
+            }
+            // console.log(playerInfoList);
             sendObjToAllClient({
-              event: 'player_offline',
-              playerid: connection.playerInfo.playerid, 
-              reason: 'just_offline'
+              event: 'player_list',
+              list: playerInfoList
+            });
+          } else if (obj.event === 'player_position') {
+            // 使用者請求更新座標至 (obj.x, obj.y)
+            sendObjToAllClient({
+              event: 'player_position',
+              playerid: connection.playerInfo.playerid,
+              x: obj.x,
+              y: obj.y
+            });
+            connection.playerInfo.x = obj.x;
+            connection.playerInfo.y = obj.y;
+          } else if (obj.event === 'ask_player_info') {
+            var _cn = wsConnections.getConnectionById(obj.playerid)
+            if (!_cn) return;
+            _cn = _cn.playerInfo;
+            sendObjToAllClient({
+              event: 'resp_player_info',
+              playerid: obj.playerid,
+              name: _cn.name,
+              team: _cn.team,
+              image: _cn.image
             });
           }
-        }
-        /** edition by ping 
-        if (wsConnections.length < 1) {
-        iniMap();
-        }
-        /** end of edition*/
-        if(howManyPlayers()<=0) {
-          iniMap();
-          gameStarted = false;
-          __gameStarting = false;
-          console.log('[Notice] Hunger Game ends.');
-        }
-      });
-
-      connection.on('message', function (event) {
-        if (event.type !== 'utf8') return;
-
-        // msg: 收到的字串
-        // obj: 收到的物件 (由 JSON 轉成)
-        var msg, obj;
-        try {
-          msg = event.utf8Data;
-          obj = JSON.parse(msg);
-        } catch (e) {}
-        if (!obj) return;
-
-        // TODO 告訴所有人，此 玩家 已經上線
-        // 剛建立連線時，使用者還不在場上，直到將昵稱和隊伍給 server 確定以後，
-        // server 隨機給予一個起始座標和 uuid ，該玩家才正式開始進入此遊戲場景，
-        // 擁有 3 秒鐘的無敵準備時間
-
-        /**********************************************
-        * TODO
-        * 來自使用者的資料 <--- From client
-        **********************************************/
-        if (obj.event === 'ask_variables') {
-          var playerInfos = [];
-          for(var i=0;i<wsConnections.length;i++) {
-            if(wsConnections[i].playerInfo) {
-              playerInfos.push(wsConnections[i].playerInfo);
+          /** bomb starts here */
+          else if (obj.event === 'put_bomb') {
+            putBomb(obj.playerid, obj.x, obj.y, obj.bombingPower);
+          } else if (obj.event === 'player_bombed') {
+            if (obj.playerid) {
+              player_bombed(obj.playerid);
             }
           }
-          sendObjToClient({
-            event: 'resp_variables', 
-            variables: {
-              grids: grids, 
-              playerInfos: playerInfos
-            }
-          }, connection);
-        } else if (obj.event === 'update_player_info') {
-          // TODO 告訴這個使用者，現在哪些人在線上
-          if (obj.name) connection.playerInfo.name = obj.name;
-          if (obj.team) connection.playerInfo.team = obj.team;
-          var playerInfoList = [];
-          for (var i = 0; i < wsConnections.length; i++) {
-            if(!wsConnections[i].playerInfo.disconnected) {
-              playerInfoList.push(wsConnections[i].playerInfo);
-            }
-          }
-          // console.log(playerInfoList);
-          sendObjToAllClient({
-            event: 'player_list',
-            list: playerInfoList
-          });
-        } else if (obj.event === 'player_position') {
-          // 使用者請求更新座標至 (obj.x, obj.y)
-          sendObjToAllClient({
-            event: 'player_position',
-            playerid: connection.playerInfo.playerid,
-            x: obj.x,
-            y: obj.y
-          });
-          connection.playerInfo.x = obj.x;
-          connection.playerInfo.y = obj.y;
-        } else if (obj.event === 'ask_player_info') {
-          var _cn = wsConnections.getConnectionById(obj.playerid)
-          if (!_cn) return;
-          _cn = _cn.playerInfo;
-          sendObjToAllClient({
-            event: 'resp_player_info',
-            playerid: obj.playerid,
-            name: _cn.name,
-            team: _cn.team,
-            image: _cn.image
-          });
-        }
-        /** bomb starts here */
-        else if (obj.event === 'put_bomb') {
-          putBomb(obj.playerid, obj.x, obj.y, obj.bombingPower);
-        } else if (obj.event === 'player_bombed') {
-          if (obj.playerid) {
-            player_bombed(obj.playerid);
-          }
-        }
-        /** bomb ends here */
-        /** tool starts here */
-        else if (obj.event === 'tool_disappeared') {
-          grids[obj.gridc].empty = true;
-          grids[obj.gridc].type = 'empty';
-          sendObjToAllClient({
-            event: 'global_tool_disappeared',
-            glogrid: obj.gridc
-          });
-          sendObjToClient({
-            event: 'tool_disappeared_by_bombed',
-            bombedgrid:obj.gridc
-          }, connection)
-          //console.log(grids[obj.gridc]); 
-        } else if (obj.event === 'tool_disappeared_by_eaten') {
-          grids[obj.gridc].empty = true;
-          grids[obj.gridc].type = 'empty';
-          sendObjToAllClient({
-            event: 'global_tool_disappeared',
-            glogrid: obj.gridc,
-            tooltype: obj.tooltype,
-            eater:obj.eater
-          });
-          /*if(obj.tooltype === 5 || obj.tooltype === 6) {
+          /** bomb ends here */
+          /** tool starts here */
+          else if (obj.event === 'tool_disappeared') {
+            grids[obj.gridc].empty = true;
+            grids[obj.gridc].type = 'empty';
+            sendObjToAllClient({
+              event: 'global_tool_disappeared',
+              glogrid: obj.gridc
+            });
             sendObjToClient({
-            event: 'tool_eaten_type',
-            tooltype: obj.tooltype,
-            playerid: connection.playerInfo.playerid
-            }, connection);*/
-            //} else {
-              sendObjToAllClient({
-                event: 'tool_eaten_type', 
-                tooltype: obj.tooltype, 
-                playerid: connection.playerInfo.playerid
-              });
-              //}
-        } else if (obj.event === 'ufo_removal'){
-          sendObjToAllClient({
-            event: 'ufo_removal',
-            playerid: obj.playerid
-          })
-        }
-        /** tool ends here*/
-      }); // end of connection.on('message')
+              event: 'tool_disappeared_by_bombed',
+              bombedgrid:obj.gridc
+            }, connection)
+            //console.log(grids[obj.gridc]); 
+          } else if (obj.event === 'tool_disappeared_by_eaten') {
+            grids[obj.gridc].empty = true;
+            grids[obj.gridc].type = 'empty';
+            sendObjToAllClient({
+              event: 'global_tool_disappeared',
+              glogrid: obj.gridc,
+              tooltype: obj.tooltype,
+              eater:obj.eater
+            });
+            /*if(obj.tooltype === 5 || obj.tooltype === 6) {
+              sendObjToClient({
+              event: 'tool_eaten_type',
+              tooltype: obj.tooltype,
+              playerid: connection.playerInfo.playerid
+              }, connection);*/
+              //} else {
+                sendObjToAllClient({
+                  event: 'tool_eaten_type', 
+                  tooltype: obj.tooltype, 
+                  playerid: connection.playerInfo.playerid
+                });
+                //}
+          } else if (obj.event === 'ufo_removal'){
+            sendObjToAllClient({
+              event: 'ufo_removal',
+              playerid: obj.playerid
+            })
+          }
+          /** tool ends here*/
+        }); // end of connection.on('message')
 
     }
   //); // end of wsServer.on('request')
@@ -404,7 +408,7 @@ function newRoom(){
 
   function toolappear() {
     //if(!gameStarted)
-    //  return;
+      //  return;
     setTimeout(toolappear,Math.floor(Math.random() * 5000)+30000);
     var getgrid = randIniPos();
     if (getgrid !== -1) {
