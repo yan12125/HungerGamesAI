@@ -39,6 +39,8 @@
         width: 50px;
         opacity: 1;
 		background-size: 100% 100%;	}
+  .playername { position:relative; top:100%; left:50%; width:200px; margin-left:-100px; }
+  .playername span { font-size: 16px; color: yellow; padding: 0 4px; background: rgba(0, 0, 0, .5); }
 #playersContainer > div.penetrate > div { padding-top: 15px; }
 #playersContainer > div.penetrate { margin-top: -5px; }
 #playersContainer > div.penetrate::before {
@@ -57,8 +59,10 @@ background-image:url('ufo.png');
       #timer-alive-wrap { display: none; }
       #timer-ufo-wrap { display: none; }
 
-      #checklist > div { color: red; margin: 8px 0; text-decoration: line-through; }
+      #checklist { position: absolute; width: 160px; }
+      #checklist > div { padding: 6px; color: red; margin: 8px 0 8px 16px; text-decoration: line-through; }
       #checklist > div.ok { cursor: pointer; color: green; text-decoration: none; font-weight: bold; }
+      #checklist > div.ok:hover { background: #FDFFE0; }
     </style>
   </head>
   <body>
@@ -68,25 +72,25 @@ background-image:url('ufo.png');
     <!-- server lists -->
     <div id="checklist">
       通訊實驗室:
-      <div>140.112.174.174:3000</div>
-      <div>140.112.174.174:3001</div>
-      <div>140.112.174.174:3002</div>
-      <div>140.112.174.174:3003</div>
+      <div data-host="140.112.174.174:3000">單人測試頻道</div>
+      <div data-host="140.112.174.174:3001">正式頻道1</div>
+      <div data-host="140.112.174.174:3002">正式頻道2</div>
+      <div data-host="140.112.174.174:3003">正式頻道3</div>
       網多實驗室:
-      <div>140.112.18.195:3000</div>
-      <div>140.112.18.195:3001</div>
-      <div>140.112.18.195:3002</div>
-      <div>140.112.18.195:3003</div>
+      <div data-host="140.112.18.195:3000">單人測試頻道</div>
+      <div data-host="140.112.18.195:3001">正式頻道1</div>
+      <div data-host="140.112.18.195:3002">正式頻道2</div>
+      <div data-host="140.112.18.195:3003">正式頻道3</div>
       130 電腦教室:
-      <div>140.112.18.196:3000</div>
-      <div>140.112.18.196:3001</div>
-      <div>140.112.18.196:3002</div>
-      <div>140.112.18.196:3003</div>
+      <div data-host="140.112.18.196:3000">單人測試頻道</div>
+      <div data-host="140.112.18.196:3001">正式頻道1</div>
+      <div data-host="140.112.18.196:3002">正式頻道2</div>
+      <div data-host="140.112.18.196:3003">正式頻道3</div>
       備用伺服器:
-      <div>140.112.49.246:3000</div>
-      <div>140.112.49.246:3001</div>
-      <div>140.112.49.246:3002</div>
-      <div>140.112.49.246:3003</div>
+      <div data-host="140.112.49.246:3000">單人測試頻道</div>
+      <div data-host="140.112.49.246:3001">正式頻道1</div>
+      <div data-host="140.112.49.246:3002">正式頻道2</div>
+      <div data-host="140.112.49.246:3003">正式頻道3</div>
     </div>
     <script>
 
@@ -97,14 +101,7 @@ background-image:url('ufo.png');
         var servers = [];
 
         for (var i = 0, len = serversElm.length; i < len; i++) {
-          servers.push(serversElm[i].innerHTML);
-
-          serversElm[i].innerHTML = [
-              '單人測試頻道',
-              '正式頻道1',
-              '正式頻道2',
-              '正式頻道3'
-          ][i % 4];
+          servers.push(serversElm[i].dataset.host);
 
           (function(i, ___elm){
             ___elm.addEventListener('click', function() {
@@ -124,7 +121,7 @@ background-image:url('ufo.png');
                 thisPlayer.team = prompt('您的隊伍', default_team);
                 if (!thisPlayer.team || thisPlayer.team === default_team) return;
   
-                thisPlayer.elm.innerHTML = '<div style="position:relative; top:100%;">' + thisPlayer.name + '<br>' + thisPlayer.team + '</div>';
+                thisPlayer.elm.innerHTML = '<div class="playername"><span>' + thisPlayer.name + '</span><br><span>' + thisPlayer.team + '</span></div>';
   
                 // console.log('嘗試建立 WebSocket 連線');
                 webSocketInit();

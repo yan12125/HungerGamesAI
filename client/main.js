@@ -100,14 +100,12 @@ playersContainer.style.width = '780px';
 playersContainer.innerHTML = '<div id="thisPlayer"></div>';
 
 var thisPlayerElm = document.getElementById('thisPlayer');
-thisPlayerElm.innerHTML = '<div style="position:relative ; top:100%;">Here!!</div>';
 // 以下覆蓋掉 #playersContainer > div 之樣式規則對 #thisPlayerElm 的影響
 thisPlayerElm.style.overflow = 'visible';
 thisPlayerElm.style.position = 'absolute';
 thisPlayerElm.style.zIndex = '200';
 thisPlayerElm.style.height = '50px'; //<- mod
 thisPlayerElm.style.width = '50px'; //<- mod
-thisPlayerElm.style.background = 'white';
 thisPlayerElm.style.opacity = '1';
 thisPlayerElm.style.textAlign = 'center'; //<-mod
 //thisPlayerElm.style.top = '100%';
@@ -484,7 +482,7 @@ function webSocketInit() {
                 _player.image = obj.list[i].image;
                 _player.elm.style.background = 'url(' + obj.list[i].image + ')';
                 _player.elm.style.textAlign = 'center';
-				_player.elm.innerHTML = '<div style="position:relative; top: 100%;">' + obj.list[i].name + '<br>' + obj.list[i].team + '</div>';
+				_player.elm.innerHTML = '<div class="playername"><span>' + obj.list[i].name + '</span><br><span>' + obj.list[i].team + '</span></div>';
                 
             }
         }
