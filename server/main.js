@@ -130,7 +130,7 @@ function newRoom(){
   /**
   * images URL
   */
-  var images = ['red.png', 'orange.png','yellow.png','green.png','blue.png','purple.png'];
+  var images = ['img/red.png', 'img/orange.png','img/yellow.png','img/green.png','img/blue.png','img/purple.png'];
   var picCount = [0,2,4,1,3,5];
 
 

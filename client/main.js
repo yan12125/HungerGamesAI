@@ -449,17 +449,17 @@ function webSocketInit() {
                 if (map[i].type !== 'empty' && map[i].type !== 'bomb') grids[i].classList.add(map[i].type);
                 if (map[i].type === 'tool') {
                      if (map[i].tool === 1) {
-						grids[i].innerHTML = '<img src="speed_up.png" height="59px" width="59px"></img>';
+						grids[i].innerHTML = '<img src="img/speed_up.png" height="59px" width="59px"></img>';
 					} else if (map[i].tool === 2) {
-						grids[i].innerHTML = '<img src="speed_change.png" height="59px" width="59px"></img>';
+						grids[i].innerHTML = '<img src="img/speed_change.png" height="59px" width="59px"></img>';
 					} else if (map[i].tool ===  3) {
-						grids[i].innerHTML = '<img src="water_ball.png" height="59px" width="59px"></img>';
+						grids[i].innerHTML = '<img src="img/water_ball.png" height="59px" width="59px"></img>';
 					} else if (map[i].tool ===  4) {
-						grids[i].innerHTML = '<img src="bombpower.jpg" height="59px" width="59px"></img>';
+						grids[i].innerHTML = '<img src="img/bombpower.jpg" height="59px" width="59px"></img>';
 					} else if (map[i].tool ===  5) {
-						grids[i].innerHTML = '<img src="ufo_tool.png" height="59px" width="59px"></img>';
+						grids[i].innerHTML = '<img src="img/ufo_tool.png" height="59px" width="59px"></img>';
 					} else if (map[i].tool ===  6) {
-						grids[i].innerHTML = '<img src="alive.png" height="59px" width="59px"></img>';
+						grids[i].innerHTML = '<img src="img/alive.png" height="59px" width="59px"></img>';
 					}
                 }
             }
@@ -518,17 +518,17 @@ function webSocketInit() {
             grids[obj.grid].classList.add('tool');
             grids[obj.grid].tooltype = obj.tooltype;
             if (obj.tooltype === 1) {
-                grids[obj.grid].innerHTML = '<img src="speed_up.png" height="59px" width="59px"></img>';
+                grids[obj.grid].innerHTML = '<img src="img/speed_up.png" height="59px" width="59px"></img>';
             } else if (obj.tooltype === 2) {
-                grids[obj.grid].innerHTML = '<img src="speed_change.png" height="59px" width="59px"></img>';
+                grids[obj.grid].innerHTML = '<img src="img/speed_change.png" height="59px" width="59px"></img>';
             } else if (obj.tooltype === 3) {
-                grids[obj.grid].innerHTML = '<img src="water_ball.png" height="59px" width="59px"></img>';
+                grids[obj.grid].innerHTML = '<img src="img/water_ball.png" height="59px" width="59px"></img>';
             } else if (obj.tooltype === 4) {
-                grids[obj.grid].innerHTML = '<img src="bombpower.jpg" height="59px" width="59px"></img>';
+                grids[obj.grid].innerHTML = '<img src="img/bombpower.jpg" height="59px" width="59px"></img>';
             } else if (obj.tooltype === 5) {
-				grids[obj.grid].innerHTML = '<img src="ufo_tool.png" height="59px" width="59px"></img>';
+				grids[obj.grid].innerHTML = '<img src="img/ufo_tool.png" height="59px" width="59px"></img>';
             } else if (obj.tooltype === 6) {
-                grids[obj.grid].innerHTML = '<img src="alive.png" height="59px" width="59px"></img>';
+                grids[obj.grid].innerHTML = '<img src="img/alive.png" height="59px" width="59px"></img>';
             }
         }else if(obj.event === 'tool_disappeared_by_bombed') {
 			grids[obj.bombedgrid].tooltype = 0;
