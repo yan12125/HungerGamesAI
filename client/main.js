@@ -430,7 +430,15 @@ function webSocketInit() {
             /** it ends here */
             thisPlayer.id = obj.playerid;
             thisPlayer.image = obj.image;
-            thisPlayer.elm.style.background = 'url(' + obj.image + ')';
+            // thisPlayer.elm.style.background = 'url(' + obj.image + ')';
+            var img_obj = document.createElement('img');
+            img_obj.src = obj.image;
+            img_obj.style.width = 60 +'px';
+            img_obj.style.height = 60 +'px';
+            img_obj.style.position = 'relative';
+            img_obj.style.top = '-50px';
+            img_obj.style.left = '-5px';
+            thisPlayer.elm.appendChild(img_obj);
         } else if (obj.event === 'player_position') {
             if (obj.playerid !== thisPlayer.id) {
                 players.setPositionById(obj.playerid, obj.x, obj.y);
