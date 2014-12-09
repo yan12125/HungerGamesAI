@@ -132,12 +132,15 @@ window.addEventListener('keydown', function (event) {
 		alert('警告：請切換至英文輸入法');
     if (!KEYS[tkey]) {
         if (tkey === 32 && gameStarted) { // 空白鍵
+            event.preventDefault();
             if (!thisPlayer.dead && bombCount <= bomblimit) {
                 putBomb(
                 thisPlayer.id, Math.floor(thisPlayer.getX() / 60),
                 Math.floor(thisPlayer.getY() / 60));
             }
         }
+    } else {
+        event.preventDefault();
     }
     var ti = pressedSeq.indexOf(tkey);
     if (ti === -1) {
@@ -200,7 +203,7 @@ function recalculatePosition() {
             newX = oldX;
             if (!map[nGd1].empty && map[nGd3].empty && map[nGd2].empty) {
                 newY = calculateNewValue(oldY, 37, 40);
-            } //left top empty	
+            } //left top empty
             else if (map[nGd1].empty && !map[nGd3].empty && map[nGd0].empty) {
                 newY = calculateNewValue(oldY, 38, 37);
             } //left bot empty
@@ -211,7 +214,7 @@ function recalculatePosition() {
             newX = oldX;
             if (!map[nGd0].empty && map[nGd2].empty && map[nGd3].empty) {
                 newY = calculateNewValue(oldY, 39, 40);
-            } //right top empty	
+            } //right top empty
             else if (map[nGd0].empty && !map[nGd2].empty && map[nGd1].empty) {
                 newY = calculateNewValue(oldY, 38, 39);
             } //right bot empty
@@ -222,7 +225,7 @@ function recalculatePosition() {
             newY = oldY;
             if (!map[nGd3].empty && map[nGd2].empty &&map[nGd0].empty) {
                 newX = calculateNewValue(oldX, 37, 38);
-            } //right top empty	
+            } //right top empty
             else if (map[nGd3].empty && !map[nGd2].empty&&map[nGd1].empty) {
                 newX = calculateNewValue(oldX, 38, 39);
             } //left top empty
@@ -234,7 +237,7 @@ function recalculatePosition() {
             newY = oldY;
             if (!map[nGd1].empty && map[nGd0].empty&&map[nGd2].empty) {
                 newX = calculateNewValue(oldX, 37, 40);
-            } //right bot empty	
+            } //right bot empty
             else if (map[nGd1].empty && !map[nGd0].empty&&map[nGd3].empty) {
                 newX = calculateNewValue(oldX, 40, 39);
             } //left bot empty
@@ -251,6 +254,20 @@ function recalculatePosition() {
     if (newY !== oldY) {
         thisPlayer.setY(newY);
         changed = true;
+    }
+    if(changed)
+    {
+        var characterHeight = 60, scrollMargin = 100;
+        var clientHeight = document.documentElement.clientHeight;
+        var scrollY = window.pageYOffset;
+        if(newY + characterHeight + scrollMargin >  scrollY + clientHeight)
+        {
+            window.scrollTo(newX, newY+characterHeight-clientHeight+scrollMargin);
+        }
+        else if(newY - scrollMargin < window.pageYOffset)
+        {
+            window.scrollTo(newX, newY - scrollMargin);
+        }
     }
     return changed;
 }
@@ -310,9 +327,9 @@ function main() {
 
     var target_grid_id = gridCalc(thisPlayer.getX(), thisPlayer.getY());
 	var nowpos=target_grid_id;
-    
+
     myBlockColor(nowpos);
-		
+
 	for (var i = 0; i < 169; i += 1) {
         if (grids[target_grid_id].classList.contains('tool')) {
 			if(grids[target_grid_id].tooltype===5)
@@ -328,10 +345,10 @@ function main() {
             grids[target_grid_id].innerHTML = '';
         }
 
-        if (map[i] && map[i].type === 'empty' && !map[i].empty) 
+        if (map[i] && map[i].type === 'empty' && !map[i].empty)
 			map[i].empty = true;
         /**
-         * 有時 map[i].type === 'empty' 
+         * 有時 map[i].type === 'empty'
          * but map[i].type === false, while reason unknown
          */
     }
@@ -442,7 +459,7 @@ function webSocketInit() {
         } else if (obj.event === 'player_position') {
             if (obj.playerid !== thisPlayer.id) {
                 players.setPositionById(obj.playerid, obj.x, obj.y);
-                
+
             }
         } else if (obj.event === 'player_offline') {
           if(obj.reason === 'just_offline') {
@@ -480,9 +497,9 @@ function webSocketInit() {
                 x: thisPlayer.getX(),
                 y: thisPlayer.getY()
             });
-        } else if (obj.event === 'player_list') { 
+        } else if (obj.event === 'player_list') {
             for (var i = 0; i < obj.list.length; i++) {
-                if (obj.list[i].playerid == thisPlayer.id) 
+                if (obj.list[i].playerid == thisPlayer.id)
 					continue;
                 var _player = players.getPlayerById(obj.list[i].playerid);
                 _player.setX(obj.list[i].x);
@@ -491,7 +508,7 @@ function webSocketInit() {
                 _player.elm.style.background = 'url(' + obj.list[i].image + ')';
                 _player.elm.style.textAlign = 'center';
 				_player.elm.innerHTML = '<div class="playername"><span>' + obj.list[i].name + '</span><br><span>' + obj.list[i].team + '</span></div>';
-                
+
             }
         }
         /** bomb starts here */
@@ -541,7 +558,7 @@ function webSocketInit() {
         }else if(obj.event === 'tool_disappeared_by_bombed') {
 			grids[obj.bombedgrid].tooltype = 0;
 			grids[obj.bombedgrid].innerHTML = '';
-		
+
 		}else if (obj.event === 'global_tool_disappeared') {
             if (grids[obj.glogrid].classList.contains('tool')) {
 				if(obj.tooltype === 5)
@@ -568,15 +585,15 @@ function webSocketInit() {
 //     } else {
 //         var default_name = '<輸入您的暱稱>';
 //         var default_team = '<輸入您的隊伍>';
-// 
+//
 //         thisPlayer.name = prompt('您的暱稱', default_name);
 //         if (!thisPlayer.name || thisPlayer.name === default_name) return;
-// 
+//
 //         thisPlayer.team = prompt('您的隊伍', default_team);
 //         if (!thisPlayer.team || thisPlayer.team === default_team) return;
-// 
+//
 //         thisPlayer.elm.innerHTML = '<div style="position:relative; top:100%;">' + thisPlayer.name + '<br>' + thisPlayer.team + '</div>';
-// 
+//
 //         log('嘗試建立 WebSocket 連線');
 //         webSocketInit();
 //     }
@@ -599,9 +616,9 @@ function putBomb(playerid, x, y) {
             x: x,
             y: y
         };
- 
+
         sendObjToServer(sss);
-        
+
     }
 }
 
@@ -664,7 +681,7 @@ function toolapply(obj) {
   } else if(type === 3) { //increase bomb
     if(bomblimit < 5) bomblimit += 1;
   } else if(type === 4) { //increase bomb power
-    if(myBombingPower < 7) 
+    if(myBombingPower < 7)
       myBombingPower += 1;
   } else if(type === 5) {
     if(penetrate)
