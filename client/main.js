@@ -91,6 +91,17 @@ function createPlayer() {
     };
 }
 
+function createPlayerImageElement(imgUrl) {
+    var img_obj = document.createElement('img');
+    img_obj.src = imgUrl;
+    img_obj.style.width = 60 +'px';
+    img_obj.style.height = 60 +'px';
+    img_obj.style.position = 'relative';
+    img_obj.style.top = '-50px';
+    img_obj.style.left = '-5px';
+    return img_obj;
+}
+
 /**
  * 顯示自己
  */
@@ -448,14 +459,7 @@ function webSocketInit() {
             thisPlayer.id = obj.playerid;
             thisPlayer.image = obj.image;
             // thisPlayer.elm.style.background = 'url(' + obj.image + ')';
-            var img_obj = document.createElement('img');
-            img_obj.src = obj.image;
-            img_obj.style.width = 60 +'px';
-            img_obj.style.height = 60 +'px';
-            img_obj.style.position = 'relative';
-            img_obj.style.top = '-50px';
-            img_obj.style.left = '-5px';
-            thisPlayer.elm.appendChild(img_obj);
+            thisPlayer.elm.appendChild(createPlayerImageElement(obj.image));
         } else if (obj.event === 'player_position') {
             if (obj.playerid !== thisPlayer.id) {
                 players.setPositionById(obj.playerid, obj.x, obj.y);
@@ -505,9 +509,12 @@ function webSocketInit() {
                 _player.setX(obj.list[i].x);
                 _player.setY(obj.list[i].y);
                 _player.image = obj.list[i].image;
-                _player.elm.style.background = 'url(' + obj.list[i].image + ')';
                 _player.elm.style.textAlign = 'center';
-				_player.elm.innerHTML = '<div class="playername"><span>' + obj.list[i].name + '</span><br><span>' + obj.list[i].team + '</span></div>';
+                var playerContent = document.createElement('div');
+                playerContent.innerHTML = '<span>' + obj.list[i].name + '</span><br><span>' + obj.list[i].team + '</span>';
+                playerContent.className = 'playername';
+                _player.elm.appendChild(createPlayerImageElement(obj.list[i].image));
+				_player.elm.appendChild(playerContent);
 
             }
         }

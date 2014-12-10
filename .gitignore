@@ -1,1 +1,4 @@
 server/node_modules
+.*.swp
+*.pyc
+__pycache__
