@@ -1,7 +1,6 @@
 import ws4py.client.threadedclient
 import json
 import random
-import pprint
 
 grids = None
 players = {}
@@ -20,13 +19,11 @@ def handle_messages(event, data):
         for player in playersList:
             players[player['playerid']] = player
         print('Receive players')
-        pprint.pprint(players)
+        print(json.dumps(players, indent=4))
     elif event == 'pos_initial':
         pos = data['pos']
     elif event == 'player_position':
         playerid = data['playerid']
-        if playerid not in players:
-            players[playerid] = {}
         players[playerid]['pos'] = (data['x'], data['y'])
     elif event == 'player_offline':
         playerid = data['playerid']

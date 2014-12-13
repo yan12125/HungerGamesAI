@@ -18,6 +18,7 @@ var preparing = true;
  * 使用一個陣列，儲存所有玩家的資訊
  */
 var players = [];
+var tools_img = [ "speed_up.png", "speed_change.png", "water_ball.png", "bombpower.jpg", "ufo_tool.png", "alive.png" ];
 
 /**
  * 遊戲開始了沒？
@@ -132,9 +133,9 @@ KEYS[37] = KEYS[38] = KEYS[39] = KEYS[40] = true;
 
 var bomblimit=0;
 window.addEventListener('keydown', function (event) {
-	var tkey = event.which;
-	if(tkey===229)
-		alert('警告：請切換至英文輸入法');
+    var tkey = event.which;
+    if(tkey===229)
+        alert('警告：請切換至英文輸入法');
     if (!KEYS[tkey]) {
         if (tkey === 32 && gameStarted) { // 空白鍵
             event.preventDefault();
@@ -298,10 +299,10 @@ function calculateNewValue(value, keyCode1, keyCode2) {
 
 function gridCalc(x, y) {
     if(x>=780) x = 779;
-	else if( x < 0) x=0;
-	if(y>=780) y = 779;
-	else if(y<0) y=0;
-	return 13 * Math.floor(y / 60) + Math.floor(x / 60);
+    else if( x < 0) x=0;
+    if(y>=780) y = 779;
+    else if(y<0) y=0;
+    return 13 * Math.floor(y / 60) + Math.floor(x / 60);
 }
 
 /** [    END    ] section: position calculation  maintained by ping */
@@ -324,28 +325,28 @@ function main() {
     });
 
     var target_grid_id = gridCalc(thisPlayer.getX(), thisPlayer.getY());
-	var nowpos=target_grid_id;
+    var nowpos=target_grid_id;
 
     myBlockColor(nowpos);
 
-	for (var i = 0; i < 169; i += 1) {
-        if (grids[target_grid_id].classList.contains('tool')) {
-			if(grids[target_grid_id].tooltype===5) {
-				thisPlayerElm.classList.add('penetrate');
-            }
-            grids[target_grid_id].classList.remove('tool');
-            sendObjToServer({
-                event: 'tool_disappeared_by_eaten',
-                gridc: target_grid_id,
-                tooltype: grids[target_grid_id].tooltype,
-				eater:thisPlayer.id
-            });
-            grids[target_grid_id].tooltype = 0;
-            grids[target_grid_id].innerHTML = '';
+    if (grids[target_grid_id].classList.contains('tool')) {
+        if(grids[target_grid_id].tooltype===5) {
+            thisPlayerElm.classList.add('penetrate');
         }
+        grids[target_grid_id].classList.remove('tool');
+        sendObjToServer({
+            event: 'tool_disappeared_by_eaten',
+            gridc: target_grid_id,
+            tooltype: grids[target_grid_id].tooltype,
+            eater:thisPlayer.id
+        });
+        grids[target_grid_id].tooltype = 0;
+        grids[target_grid_id].innerHTML = '';
+    }
 
+    for (var i = 0; i < 169; i += 1) {
         if (map[i] && map[i].type === 'empty' && !map[i].empty)
-			map[i].empty = true;
+            map[i].empty = true;
         /**
          * 有時 map[i].type === 'empty'
          * but map[i].type === false, while reason unknown
@@ -389,13 +390,13 @@ function webSocketInit() {
           distancePerIteration = 5;
           clearInterval(mainRep);
           if(confirm('遊戲結束。重新載入？'))
-				location.reload();
+                location.reload();
         }
         // log('WebSocket 關閉了。');
         ws = null;
         map = null;
-		document.getElementById('buttondiv').innerHTML='<button 	id="connect-button">重新載入</button>';
-		document.getElementById('buttondiv').addEventListener('click',function(){location.reload();});
+        document.getElementById('buttondiv').innerHTML='<button     id="connect-button">重新載入</button>';
+        document.getElementById('buttondiv').addEventListener('click',function(){location.reload();});
     };
 
     ws.onopen = function () {
@@ -406,7 +407,7 @@ function webSocketInit() {
             name: thisPlayer.name,
             team: thisPlayer.team
         });
-		document.getElementById('buttondiv').innerHTML='';
+        document.getElementById('buttondiv').innerHTML='';
     };
 
     ws.onerror = function (event) {
@@ -428,11 +429,7 @@ function webSocketInit() {
          * 來自伺服器的資料 <--- From server
          ***********/
         // log('<< WebSocket 收到訊息: ' + msg);
-        if (obj.event === 'resp_variables') {
-          window.serverVariables = obj.variables;
-          // console.log('window.serverVariables');
-          // console.log(obj.variables);
-        } else if(obj.event === 'game_started') {
+        if(obj.event === 'game_started') {
           countDown(3, document.getElementById('timer-preparing'));
           setTimeout(function(){
             gameStarted = true;
@@ -441,7 +438,7 @@ function webSocketInit() {
             setTimeout(function () {
               preparing = false;
             }, 3000);
-          },3000);	  // 3000 milliseconds for preparing,
+          },3000);    // 3000 milliseconds for preparing,
         } else if (obj.event === 'playerid') {
             /** it ends here */
             thisPlayer.id = obj.playerid;
@@ -456,19 +453,7 @@ function webSocketInit() {
             if (map) for (var i = 0, len = map.length; i < len; i++) {
                 if (map[i].type !== 'empty' && map[i].type !== 'bomb') grids[i].classList.add(map[i].type);
                 if (map[i].type === 'tool') {
-                     if (map[i].tool === 1) {
-						grids[i].innerHTML = '<img src="img/speed_up.png" height="59px" width="59px"></img>';
-					} else if (map[i].tool === 2) {
-						grids[i].innerHTML = '<img src="img/speed_change.png" height="59px" width="59px"></img>';
-					} else if (map[i].tool ===  3) {
-						grids[i].innerHTML = '<img src="img/water_ball.png" height="59px" width="59px"></img>';
-					} else if (map[i].tool ===  4) {
-						grids[i].innerHTML = '<img src="img/bombpower.jpg" height="59px" width="59px"></img>';
-					} else if (map[i].tool ===  5) {
-						grids[i].innerHTML = '<img src="img/ufo_tool.png" height="59px" width="59px"></img>';
-					} else if (map[i].tool ===  6) {
-						grids[i].innerHTML = '<img src="img/alive.png" height="59px" width="59px"></img>';
-					}
+                    grids[i].innerHTML = '<img src="img/'+tools_img[map[i].tool-1]+'" height="59px" width="59px"/>';
                 }
             }
         } else if (obj.event === 'player_list') {
@@ -485,7 +470,7 @@ function webSocketInit() {
                 playerContent.innerHTML = '<span>' + obj.list[i].name + '</span><br><span>' + obj.list[i].team + '</span>';
                 playerContent.className = 'playername';
                 _player.elm.appendChild(createPlayerImageElement(obj.list[i].image));
-				_player.elm.appendChild(playerContent);
+                _player.elm.appendChild(playerContent);
             }
         }
         /** bomb starts here */
@@ -493,20 +478,20 @@ function webSocketInit() {
             var pos = obj.x + obj.y * 13;
             grids[pos].classList.add('bomb');
             map[pos].type = 'bomb';
-			map[pos].empty=true;
-			var chkleave = setInterval(function(){
-				if(gridCalc(thisPlayer.getX()+25,thisPlayer.getY()+25)!==pos&&gridCalc(thisPlayer.getX()+25,thisPlayer.getY()-25)!==pos&&gridCalc(thisPlayer.getX()-25,thisPlayer.getY()+25)!==pos&&gridCalc(thisPlayer.getX()-25,thisPlayer.getY()-25)!==pos&&gridCalc(thisPlayer.getX()-25,thisPlayer.getY())!==pos&&gridCalc(thisPlayer.getX()+25,thisPlayer.getY())!==pos&&gridCalc(thisPlayer.getX(),thisPlayer.getY()-25)!==pos&&gridCalc(thisPlayer.getX(),thisPlayer.getY()+25)!==pos){
-					map[pos].empty=false;
-					clearInterval(chkleave);
-				}
-			},1000/60);
+            map[pos].empty=true;
+            var chkleave = setInterval(function(){
+                if(gridCalc(thisPlayer.getX()+25,thisPlayer.getY()+25)!==pos&&gridCalc(thisPlayer.getX()+25,thisPlayer.getY()-25)!==pos&&gridCalc(thisPlayer.getX()-25,thisPlayer.getY()+25)!==pos&&gridCalc(thisPlayer.getX()-25,thisPlayer.getY()-25)!==pos&&gridCalc(thisPlayer.getX()-25,thisPlayer.getY())!==pos&&gridCalc(thisPlayer.getX()+25,thisPlayer.getY())!==pos&&gridCalc(thisPlayer.getX(),thisPlayer.getY()-25)!==pos&&gridCalc(thisPlayer.getX(),thisPlayer.getY()+25)!==pos){
+                    map[pos].empty=false;
+                    clearInterval(chkleave);
+                }
+            },1000/60);
         } else if (obj.event === 'player_bombed') {
             if (obj.playerid === thisPlayer.id) {
                 thisPlayer.elm.style.opacity = 0.3;
                 thisPlayer.dead = true;
             } else {
-				players.getPlayerById(obj.playerid).elm.style.opacity=0.1;
-			}
+                players.getPlayerById(obj.playerid).elm.style.opacity=0.1;
+            }
         } else if (obj.event === 'wall_vanish') {
             wallBombard(obj.x, obj.y);
         } else if (obj.event === 'grid_bombed') {
@@ -517,38 +502,15 @@ function webSocketInit() {
         else if (obj.event === 'tool_appeared') {
             grids[obj.grid].classList.add('tool');
             grids[obj.grid].tooltype = obj.tooltype;
-            if (obj.tooltype === 1) {
-                grids[obj.grid].innerHTML = '<img src="img/speed_up.png" height="59px" width="59px"></img>';
-            } else if (obj.tooltype === 2) {
-                grids[obj.grid].innerHTML = '<img src="img/speed_change.png" height="59px" width="59px"></img>';
-            } else if (obj.tooltype === 3) {
-                grids[obj.grid].innerHTML = '<img src="img/water_ball.png" height="59px" width="59px"></img>';
-            } else if (obj.tooltype === 4) {
-                grids[obj.grid].innerHTML = '<img src="img/bombpower.jpg" height="59px" width="59px"></img>';
-            } else if (obj.tooltype === 5) {
-				grids[obj.grid].innerHTML = '<img src="img/ufo_tool.png" height="59px" width="59px"></img>';
-            } else if (obj.tooltype === 6) {
-                grids[obj.grid].innerHTML = '<img src="img/alive.png" height="59px" width="59px"></img>';
-            }
-        }else if(obj.event === 'tool_disappeared_by_bombed') {
-			grids[obj.bombedgrid].tooltype = 0;
-			grids[obj.bombedgrid].innerHTML = '';
-
-		}else if (obj.event === 'global_tool_disappeared') {
-            if (grids[obj.glogrid].classList.contains('tool')) {
-				if(obj.tooltype === 5)
-                  players.getPlayerById(obj.eater).elm.classList.add('penetrate');
-                grids[obj.glogrid].classList.remove("tool");
-                grids[obj.glogrid].tooltype = 0;
-                grids[obj.glogrid].innerHTML = '';
-            }
-        } else if (obj.event === 'tool_eaten_type') {
-			toolapply(obj);
-            /** tool ends here */
-        } else if (obj.event === 'ufo_removal'){
-			if(obj.playerid!==thisPlayer.id)
-				players.getPlayerById(obj.playerid).elm.classList.remove('penetrate');
-		}
+            grids[obj.grid].innerHTML = '<img src="img/'+tools_img[obj.tooltype-1]+'" height="59px" width="59px"/>';
+        }else if (obj.event === 'tool_disappeared') {
+            if(obj.eater != 'bomb' && obj.tooltype === 5)
+              players.getPlayerById(obj.eater).elm.classList.add('penetrate');
+            grids[obj.glogrid].classList.remove("tool");
+            grids[obj.glogrid].tooltype = 0;
+            grids[obj.glogrid].innerHTML = '';
+            toolapply(obj)
+        }
     };
 }
 
@@ -616,9 +578,10 @@ function countDown(timeout, elm) {
   }
 }
 function toolapply(obj) {
-  if(obj.playerid!=thisPlayer.id)
+  var eater = obj.eater;
+  var type = obj.tooltype;
+  if(eater != thisPlayer.id)
     return;
-  var type=obj.tooltype;
   if(type === 1) { //speed up
     if(distancePerIteration < 10) distancePerIteration += 1;
   } else if(type === 2) { // random speed change
@@ -649,8 +612,8 @@ function toolapply(obj) {
     },15000);
     document.getElementById('timer-ufo-wrap').style.display = 'block';
     countDown(15, document.getElementById('timer-ufo'));
-    if(obj.playerid != thisPlayer.id) {
-      players.getPlayerById(obj.playerid).elm.classList('penetrate');
+    if(eater != thisPlayer.id) {
+      players.getPlayerById(eater).elm.classList('penetrate');
     }
   } else if(type === 6) {
     if(preparing)

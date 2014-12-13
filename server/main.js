@@ -230,6 +230,7 @@ function newPlayer(connection) {
       });
       connection.playerInfo.x = obj.x;
       connection.playerInfo.y = obj.y;
+      checkEatTools(connection.playerInfo);
     }
     /** bomb starts here */
     else if (obj.event === 'put_bomb') {
@@ -240,48 +241,6 @@ function newPlayer(connection) {
       }
     }
     /** bomb ends here */
-    /** tool starts here */
-    else if (obj.event === 'tool_disappeared') {
-      grids[obj.gridc].empty = true;
-      grids[obj.gridc].type = 'empty';
-      sendObjToAllClient({
-        event: 'global_tool_disappeared',
-        glogrid: obj.gridc
-      });
-      sendObjToClient({
-        event: 'tool_disappeared_by_bombed',
-        bombedgrid:obj.gridc
-      }, connection)
-      //console.log(grids[obj.gridc]);
-    } else if (obj.event === 'tool_disappeared_by_eaten') {
-      grids[obj.gridc].empty = true;
-      grids[obj.gridc].type = 'empty';
-      sendObjToAllClient({
-        event: 'global_tool_disappeared',
-        glogrid: obj.gridc,
-        tooltype: obj.tooltype,
-        eater:obj.eater
-      });
-      /*if(obj.tooltype === 5 || obj.tooltype === 6) {
-        sendObjToClient({
-        event: 'tool_eaten_type',
-        tooltype: obj.tooltype,
-        playerid: connection.playerInfo.playerid
-        }, connection);*/
-        //} else {
-          sendObjToAllClient({
-            event: 'tool_eaten_type', 
-            tooltype: obj.tooltype, 
-            playerid: connection.playerInfo.playerid
-          });
-          //}
-    } else if (obj.event === 'ufo_removal'){
-      sendObjToAllClient({
-        event: 'ufo_removal',
-        playerid: obj.playerid
-      })
-    }
-    /** tool ends here*/
   }); // end of connection.on('message')
 }
 // end of wsServer.on('request')
@@ -327,6 +286,10 @@ function randIniPos() {
   return test;
 }
 
+function gridCalc(x, y) {
+    return 13 * Math.floor(y / 60) + Math.floor(x / 60);
+}
+
 function coordCalc(index) {
     return {
         x: index % 13 * 60 + 30,
@@ -338,6 +301,22 @@ function coordCalc(index) {
 
 function sendObjToClient(obj, playerConn) {
   playerConn && playerConn.sendUTF(JSON.stringify(obj));
+}
+
+function checkEatTools(playerInfo) {
+  var pos = gridCalc(playerInfo.x, playerInfo.y);
+  if (grids[pos].type !== 'tool') {
+    return;
+  }
+  grids[pos].empty = true;
+  grids[pos].type = 'empty';
+  console.log('Tool '+grids[pos].tool+' at ('+pos%13+','+pos/13+') eaten by '+playerInfo.playerid);
+  sendObjToAllClient({
+    event: 'tool_disappeared',
+    glogrid: pos,
+    tooltype: grids[pos].tool,
+    eater: playerInfo.playerid
+  });
 }
 
 function randTool() {
@@ -506,7 +485,13 @@ function grid_bombed(x, y) {
       y: y
     });
   } else if (grid.type === 'tool') {
-    ;
+    console.log('Tool '+grids[pos].tool+' at ('+pos%13+','+pos/13+') bombed');
+    sendObjToAllClient({
+      event: 'tool_disappeared',
+      glogrid: pos,
+      tooltype: grids[pos].tool,
+      eater: 'bomb'
+    });
   }
   grid.type = 'empty';
   grid.empty = true;
