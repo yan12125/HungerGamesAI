@@ -10,19 +10,20 @@
       #game { position: absolute; top:30px; left: 200px; z-index:-100; width: 780px; height: 780px; }
 
       #gridsContainer { position: absolute; z-index: -10; }
-      #gridsContainer > div { height: 59px; width: 59px;
-                                   margin-bottom: 1px; margin-right: 1px;
-                                   float: left; background: #bada77;
-									background-size: 100% 100%;		}
-     /* #gridsContainer > div:nth-child(odd) { background: #a9c844; }*/
+      #gridsContainer > div {
+        height: 59px; width: 59px;
+        margin-bottom: 1px; margin-right: 1px;
+        float: left; background: #bada77;
+        background-size: 100% 100%;
+      }
+      /* #gridsContainer > div:nth-child(odd) { background: #a9c844; }*/
       #gridsContainer > div.active { background: #c9e854; }
-	    #gridsContainer > div.vwall { background-image:url('img/v_wall.jpg');
-								background-size: 100% 100%;}
-	    #gridsContainer > div.nvwall{ background-image:url('img/nvwall.jpg');}
-	    #gridsContainer > div.tool{ background: #bada77; }
-        #gridsContainer > div.tool:nth-child(odd){ background: #a9c844; }
-      #gridsContainer > div.bomb { background-image:url('img/waterball.png');opacity:1;}
-      #gridsContainer > div.bombed {background-image:url('img/water_bombed.jpg');opacity:0.6;}
+      #gridsContainer > div.vwall { background-image:url('img/v_wall.jpg'); background-size: 100% 100%; }
+      #gridsContainer > div.nvwall{ background-image:url('img/nvwall.jpg'); }
+      #gridsContainer > div.tool{ background: #bada77; }
+      #gridsContainer > div.tool:nth-child(odd){ background: #a9c844; }
+      #gridsContainer > div.bomb { background-image:url('img/waterball.png'); opacity:1; }
+      #gridsContainer > div.bombed {background-image:url('img/water_bombed.jpg'); opacity:0.6; }
 
       #playersContainer { position: absolute; z-index: 10; }
       #playersContainer > div {
@@ -32,19 +33,20 @@
         height: 50px;
         width: 50px;
         opacity: 1;
-		background-size: 100% 100%;	}
-  .playername { position:relative; top:100%; left:50%; width:200px; margin-left:-100px; }
-  .playername span { font-size: 16px; color: yellow; padding: 0 4px; background: rgba(0, 0, 0, .5); }
-#playersContainer > div.penetrate > div { padding-top: 15px; }
-#playersContainer > div.penetrate { margin-top: -5px; }
-#playersContainer > div.penetrate::before {
-content: "";
-position: absolute;
-top: 90%;
-width: 50px;
-height: 20px;
-background-image:url('img/ufo.png');
-}
+        background-size: 100% 100%;
+      }
+      .playername { position:relative; top:100%; left:50%; width:200px; margin-left:-100px; }
+      .playername span { font-size: 16px; color: yellow; padding: 0 4px; background: rgba(0, 0, 0, .5); }
+      #playersContainer > div.penetrate > div { padding-top: 15px; }
+      #playersContainer > div.penetrate { margin-top: -5px; }
+      #playersContainer > div.penetrate::before {
+        content: "";
+        position: absolute;
+        top: 90%;
+        width: 50px;
+        height: 20px;
+        background-image:url('img/ufo.png');
+      }
 
 
       #system-log { position: fixed; bottom: 0; left: 0; height: 256px; width: 780px; color: blue; }
@@ -65,12 +67,9 @@ background-image:url('img/ufo.png');
 
     <!-- server lists -->
     <div id="checklist">
-      Localhost: 
-      <div data-host="localhost:3000">單人測試頻道</div>
+      Localhost: <div data-host="localhost:3000">單人測試頻道</div>
     </div>
     <script>
-
-
       (function() {
         var serversShowElm = document.getElementById('checklist');
         var serversElm = document.querySelectorAll('#checklist > div');
@@ -90,26 +89,22 @@ background-image:url('img/ufo.png');
               } else {
                 var default_name = '<輸入您的暱稱>';
                 var default_team = '<輸入您的隊伍>';
-  
+
                 thisPlayer.name = prompt('您的暱稱', default_name);
                 if (!thisPlayer.name || thisPlayer.name === default_name) return;
-  
+
                 thisPlayer.team = prompt('您的隊伍', default_team);
                 if (!thisPlayer.team || thisPlayer.team === default_team) return;
-  
-                thisPlayer.elm.innerHTML = '<div class="playername"><span>' + thisPlayer.name + '</span><br><span>' + thisPlayer.team + '</span></div>';
-  
+
                 // console.log('嘗試建立 WebSocket 連線');
                 webSocketInit();
               }
             });
           })(i, serversElm[i]);
-
         }
 
         for (var i = 0, len = serversElm.length; i < len; i++) {
           (function(i, __thisServer){
-
             var ws = new WebSocket('ws://' + __thisServer + '/', 'test');
             ws.onopen = function() {
               ws.onclose = function(){};
@@ -121,13 +116,9 @@ background-image:url('img/ufo.png');
               // console.log('gg');
               serversElm[i].classList.remove('ok');
             };
-
           }(i, servers[i]));
         }
-
       })();
-
-
     </script>
 
     <!-- 放置所有遊戲物件的容器 -->
@@ -145,19 +136,18 @@ background-image:url('img/ufo.png');
     <div id="timers">
       <div id="timer-preparing"></div><br />
       <div id="timer-alive-wrap">
-        <img src="img/alive.png" />
+        <img src="img/alive.png" alt="alive"/>
         <span id="timer-alive"></span><br />
       </div>
       <div id="timer-ufo-wrap">
-        <img src="img/ufo_tool.png" />
+        <img src="img/ufo_tool.png" alt="ufo_tool"/>
         <span id="timer-ufo"></span><br />
       </div>
     </div>
 
     <script src="main.js"></script>
-	<script src="task1.js"></script>
-	<script src="task3.js"></script>
+    <script src="task1.js"></script>
+    <script src="task3.js"></script>
     <script>window.log=function(msg){console.log(msg);}</script>
-
   </body>
 </html>

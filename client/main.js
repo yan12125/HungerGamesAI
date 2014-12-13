@@ -61,12 +61,6 @@ players.setPositionById = function (uuid, x, y) {
     _player.setY(y);
 };
 
-players.updateInfoById = function (uuid, name, team) {
-    var _player = players.getPlayerById(uuid);
-    _player.name = name;
-    _player.team = team;
-};
-
 function createPlayer() {
     // Private data field
     var _x = 0,
@@ -336,8 +330,9 @@ function main() {
 
 	for (var i = 0; i < 169; i += 1) {
         if (grids[target_grid_id].classList.contains('tool')) {
-			if(grids[target_grid_id].tooltype===5)
+			if(grids[target_grid_id].tooltype===5) {
 				thisPlayerElm.classList.add('penetrate');
+            }
             grids[target_grid_id].classList.remove('tool');
             sendObjToServer({
                 event: 'tool_disappeared_by_eaten',
@@ -450,18 +445,12 @@ function webSocketInit() {
         } else if (obj.event === 'playerid') {
             /** it ends here */
             thisPlayer.id = obj.playerid;
-            thisPlayer.image = obj.image;
-            // thisPlayer.elm.style.background = 'url(' + obj.image + ')';
-            thisPlayer.elm.appendChild(createPlayerImageElement(obj.image));
         } else if (obj.event === 'player_position') {
             players.setPositionById(obj.playerid, obj.x, obj.y);
         } else if (obj.event === 'player_offline') {
           if(obj.reason === 'just_offline') {
             players.removePlayerById(obj.playerid);
           }
-        } else if (obj.event === 'resp_player_info') {
-            //console.log(obj);
-            players.updateInfoById(obj.playerid, obj.name, obj.team, obj.image);
         } else if (obj.event === 'map_initial') {
             map = obj.grids;
             if (map) for (var i = 0, len = map.length; i < len; i++) {
@@ -484,19 +473,19 @@ function webSocketInit() {
             }
         } else if (obj.event === 'player_list') {
             for (var i = 0; i < obj.list.length; i++) {
-                if (obj.list[i].playerid == thisPlayer.id)
-					continue;
                 var _player = players.getPlayerById(obj.list[i].playerid);
                 _player.setX(obj.list[i].x);
                 _player.setY(obj.list[i].y);
-                _player.image = obj.list[i].image;
+                if(_player.elm.querySelector('.playername'))
+                {
+                    continue;
+                }
                 _player.elm.style.textAlign = 'center';
                 var playerContent = document.createElement('div');
                 playerContent.innerHTML = '<span>' + obj.list[i].name + '</span><br><span>' + obj.list[i].team + '</span>';
                 playerContent.className = 'playername';
                 _player.elm.appendChild(createPlayerImageElement(obj.list[i].image));
 				_player.elm.appendChild(playerContent);
-
             }
         }
         /** bomb starts here */
@@ -548,7 +537,7 @@ function webSocketInit() {
 		}else if (obj.event === 'global_tool_disappeared') {
             if (grids[obj.glogrid].classList.contains('tool')) {
 				if(obj.tooltype === 5)
-				players.getPlayerById(obj.eater).elm.classList.add('penetrate');
+                  players.getPlayerById(obj.eater).elm.classList.add('penetrate');
                 grids[obj.glogrid].classList.remove("tool");
                 grids[obj.glogrid].tooltype = 0;
                 grids[obj.glogrid].innerHTML = '';
@@ -562,28 +551,6 @@ function webSocketInit() {
 		}
     };
 }
-
-// 連線按鈕，按下去以後搜集使用者資訊並建立 WebSocket 連線
-// var connectBtn = document.getElementById('connect-button');
-// connectBtn.addEventListener('click', function () {
-//     if (ws) {
-//         log('已經連線。');
-//     } else {
-//         var default_name = '<輸入您的暱稱>';
-//         var default_team = '<輸入您的隊伍>';
-//
-//         thisPlayer.name = prompt('您的暱稱', default_name);
-//         if (!thisPlayer.name || thisPlayer.name === default_name) return;
-//
-//         thisPlayer.team = prompt('您的隊伍', default_team);
-//         if (!thisPlayer.team || thisPlayer.team === default_team) return;
-//
-//         thisPlayer.elm.innerHTML = '<div style="position:relative; top:100%;">' + thisPlayer.name + '<br>' + thisPlayer.team + '</div>';
-//
-//         log('嘗試建立 WebSocket 連線');
-//         webSocketInit();
-//     }
-// });
 
 // WARNING: CRITICAL SECTION, NO EDITION WITHOUT PRIOR DECLARATION
 /** [    END    ] section: webSocket, message manipulation */
