@@ -164,14 +164,10 @@ function newRoom(){
         //!
         wsConnections.push(connection);
         console.log('A WebSocket connection is opened');
-        if(count==1){
-          sendObjToAll({ event: 'game_started' });
-          toolappear();
-        }
         // connection.playerInfo 內儲存使用者資訊（ uuid 、昵稱、隊伍編號... ）
         // 預設只有 uuid 用來分辨多個玩家彼此
         connection.playerInfo = {
-          playerid: uuid.v4()
+          playerid: uuid.v4().substr(0, 8)
         };
 
         // 一開始當然是活的
@@ -192,10 +188,15 @@ function newRoom(){
           event: 'map_initial',
           grids: grids
         }));
-        connection.sendUTF(JSON.stringify({
-          event: 'pos_initial',
-          pos: randIniPos()
-        }));
+        var iniPos = coordCalc(randIniPos());
+        connection.playerInfo.x = iniPos.x;
+        connection.playerInfo.y = iniPos.y;
+        sendObjToAllClient({
+          event: 'player_position', 
+          playerid: connection.playerInfo.playerid, 
+          x: iniPos.x, 
+          y: iniPos.y
+        });
 
         connection.on('close', function (reasonCode, description) {
           var idx = wsConnections.indexOf(connection);
@@ -399,6 +400,12 @@ function newRoom(){
     return test;
   }
 
+  function coordCalc(index) {
+      return {
+          x: index % 13 * 60 + 30,
+          y: parseInt((index / 13), 10) * 60 + 30
+      };
+  }
 
   /** tool starts here */
 
@@ -504,13 +511,6 @@ function newRoom(){
           bombing(bombX, bombY - j);
         }
       }
-
-      sendObjToAllClient({
-        event: 'bomb_explode',
-        bombPower: range,
-        x: bombX,
-        y: bombY
-      });
     }
   }
 

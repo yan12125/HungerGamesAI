@@ -96,9 +96,9 @@ function createPlayerImageElement(imgUrl) {
     img_obj.src = imgUrl;
     img_obj.style.width = 60 +'px';
     img_obj.style.height = 60 +'px';
-    img_obj.style.position = 'relative';
-    img_obj.style.top = '-50px';
-    img_obj.style.left = '-5px';
+    img_obj.style.position = 'absolute';
+    img_obj.style.top = '0px';
+    img_obj.style.left = '0px';
     return img_obj;
 }
 
@@ -310,13 +310,6 @@ function gridCalc(x, y) {
 	return 13 * Math.floor(y / 60) + Math.floor(x / 60);
 }
 
-function coordCalc(index) {
-    return {
-        x: index % 13 * 60 + 30,
-        y: parseInt((index / 13), 10) * 60 + 30
-    };
-}
-
 /** [    END    ] section: position calculation  maintained by ping */
 
 /** [ BEGINNING ] section: repetion at 60Hz ( utility )*/
@@ -446,14 +439,14 @@ function webSocketInit() {
           // console.log(obj.variables);
         } else if(obj.event === 'game_started') {
           countDown(3, document.getElementById('timer-preparing'));
-		  setTimeout(function(){
-		  gameStarted = true;
-          mainRep = setInterval(main, 1000 / 60);
-          // 3秒無敵
-          setTimeout(function () {
-            preparing = false;
-          }, 3000);
-			},3000);	  // 3000 milliseconds for preparing,
+          setTimeout(function(){
+            gameStarted = true;
+            mainRep = setInterval(main, 1000 / 60);
+            // 3秒無敵
+            setTimeout(function () {
+              preparing = false;
+            }, 3000);
+          },3000);	  // 3000 milliseconds for preparing,
         } else if (obj.event === 'playerid') {
             /** it ends here */
             thisPlayer.id = obj.playerid;
@@ -461,10 +454,7 @@ function webSocketInit() {
             // thisPlayer.elm.style.background = 'url(' + obj.image + ')';
             thisPlayer.elm.appendChild(createPlayerImageElement(obj.image));
         } else if (obj.event === 'player_position') {
-            if (obj.playerid !== thisPlayer.id) {
-                players.setPositionById(obj.playerid, obj.x, obj.y);
-
-            }
+            players.setPositionById(obj.playerid, obj.x, obj.y);
         } else if (obj.event === 'player_offline') {
           if(obj.reason === 'just_offline') {
             players.removePlayerById(obj.playerid);
@@ -492,15 +482,6 @@ function webSocketInit() {
 					}
                 }
             }
-        } else if (obj.event === 'pos_initial') {
-            var inipos = coordCalc(obj.pos);
-            thisPlayer.setX(inipos.x);
-            thisPlayer.setY(inipos.y);
-            sendObjToServer({
-                event: 'player_position',
-                x: thisPlayer.getX(),
-                y: thisPlayer.getY()
-            });
         } else if (obj.event === 'player_list') {
             for (var i = 0; i < obj.list.length; i++) {
                 if (obj.list[i].playerid == thisPlayer.id)
@@ -530,8 +511,6 @@ function webSocketInit() {
 					clearInterval(chkleave);
 				}
 			},1000/60);
-        } else if (obj.event === 'bomb_explode') {
-            bombExplode(obj.bombPower, obj.x, obj.y);
         } else if (obj.event === 'player_bombed') {
             if (obj.playerid === thisPlayer.id) {
                 thisPlayer.elm.style.opacity = 0.3;
@@ -540,7 +519,7 @@ function webSocketInit() {
 				players.getPlayerById(obj.playerid).elm.style.opacity=0.1;
 			}
         } else if (obj.event === 'wall_vanish') {
-            wall_vanish(obj.x, obj.y);
+            wallBombard(obj.x, obj.y);
         } else if (obj.event === 'grid_bombed') {
             grid_bombed(obj.x, obj.y, true);
         }
@@ -612,61 +591,53 @@ function webSocketInit() {
 /** [ BEGINNING ] section: bomb manipulation  maintained by yan */
 
 function putBomb(playerid, x, y) {
-    var pos = x + y * 13;
-	if (map[pos].type != 'bomb') {// disable repeat spcebar
-        bombCount++;
-        setTimeout(function(){bombCount--;}, 3000);
-        var sss = {
-            event: 'put_bomb',
-            playerid: playerid,
-            bombingPower: myBombingPower,
-            x: x,
-            y: y
-        };
-
-        sendObjToServer(sss);
-
-    }
-}
-
-function bombExplode(bombPower, x, y) {
-    var pos = x + y * 13;
-	fireInTheHole(pos);
+  var pos = x + y * 13;
+  if (map[pos].type == 'bomb') { // disable repeat spcebar
+    return;
+  }
+  bombCount++;
+  setTimeout(function () {
+    bombCount--;
+  }, 3000);
+  sendObjToServer({
+    event: 'put_bomb',
+    playerid: playerid,
+    bombingPower: myBombingPower,
+    x: x,
+    y: y
+  });
 }
 
 function grid_bombed(x, y, status) {
-    if ((0 <= x && x <= 12) && (0 <= y && y <= 12)) {
-        if (status) {
-          grids[x + y * 13].classList.add('bombed');
-          if (grids[x + y * 13].classList.contains('tool')){
-            grids[x + y * 13].classList.remove('tool');
-            sendObjToServer({
-              event: 'tool_disappeared',
-              gridc: (x + y * 13)
-            });
-          }
-        } else {
-          grids[x + y * 13].classList.remove('bombed');
-        }
-    }
-    if (!preparing && (x === Math.floor(thisPlayer.getX() / 60) && y === Math.floor(thisPlayer.getY() / 60))) {
+  var pos = x + y * 13;
+  if (status) {
+    grids[pos].classList.add('bombed');
+    if (grids[pos].classList.contains('tool')){
+      grids[pos].classList.remove('tool');
       sendObjToServer({
-        event: 'player_bombed',
-        playerid: thisPlayer.id
+        event: 'tool_disappeared',
+        gridc: pos
       });
     }
-    if (status) {
-      setTimeout(function(){
-        grid_bombed(x,y, false);
-      }, 500);
-    }
-}
-
-function wall_vanish(x, y) {
-  var pos = x + y * 13;
-
-  wallBombard(pos);
-
+  } else {
+    grids[pos].classList.remove('bombed');
+  }
+  if (!preparing && (x === Math.floor(thisPlayer.getX() / 60) && y === Math.floor(thisPlayer.getY() / 60))) {
+    sendObjToServer({
+      event: 'player_bombed',
+      playerid: thisPlayer.id
+    });
+  }
+  if(map[pos].type == 'bomb') {
+    map[pos].type = 'empty';
+    map[pos].empty = true;
+    grids[pos].classList.remove('bomb');
+  }
+  if (status) {
+    setTimeout(function(){
+      grid_bombed(x,y, false);
+    }, 500);
+  }
 }
 
 function countDown(timeout, elm) {
@@ -730,14 +701,10 @@ function toolapply(obj) {
 
 /** [    END    ] section: bomb manipulation  maintained by yan */
 
-function wallBombard(pos){
-  if (map[pos].type === 'vwall') {
-    map[pos].type = 'empty';
-    map[pos].empty = true;
-    vwallvanish(pos);
-  }
-}
-
-function vwallvanish(pos){
-	grids[pos].classList.remove('vwall');
+function wallBombard(x, y){
+  var pos = x + y * 13;
+  // This function won't be called on nvwall
+  map[pos].type = 'empty';
+  map[pos].empty = true;
+  grids[pos].classList.remove('vwall');
 }
