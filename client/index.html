@@ -87,13 +87,9 @@
                 // console.log('已經連線。');
               } else {
                 var default_name = '<輸入您的暱稱>';
-                var default_team = '<輸入您的隊伍>';
 
                 thisPlayer.name = prompt('您的暱稱', default_name);
                 if (!thisPlayer.name || thisPlayer.name === default_name) return;
-
-                thisPlayer.team = prompt('您的隊伍', default_team);
-                if (!thisPlayer.team || thisPlayer.team === default_team) return;
 
                 // console.log('嘗試建立 WebSocket 連線');
                 webSocketInit();

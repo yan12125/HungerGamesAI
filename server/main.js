@@ -205,7 +205,6 @@ function newPlayer(connection) {
     if (obj.event === 'update_player_info') {
       // TODO 告訴這個使用者，現在哪些人在線上
       if (obj.name) connection.playerInfo.name = obj.name;
-      if (obj.team) connection.playerInfo.team = obj.team;
       var playerInfoList = [];
       for (var i = 0; i < wsConnections.length; i++) {
         if(!wsConnections[i].playerInfo.disconnected) {
@@ -241,6 +240,14 @@ function newPlayer(connection) {
       }
     }
     /** bomb ends here */
+    /** tool starts here */
+    else if (obj.event === 'ufo_removal'){
+      sendObjToAllClient({
+        event: 'ufo_removal',
+        playerid: obj.playerid
+      })
+    }
+    /** tool ends here */
   }); // end of connection.on('message')
 }
 // end of wsServer.on('request')

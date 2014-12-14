@@ -70,7 +70,6 @@ function createPlayer() {
         id: null,
         elm: null,
         name: null,
-        team: null,
         getX: function () {
             return _x;
         },
@@ -404,8 +403,7 @@ function webSocketInit() {
         // 開啓連線以後，傳送自己的暱稱和隊伍給 server 知道
         sendObjToServer({
             event: 'update_player_info',
-            name: thisPlayer.name,
-            team: thisPlayer.team
+            name: thisPlayer.name
         });
         document.getElementById('buttondiv').innerHTML='';
     };
@@ -467,7 +465,7 @@ function webSocketInit() {
                 }
                 _player.elm.style.textAlign = 'center';
                 var playerContent = document.createElement('div');
-                playerContent.innerHTML = '<span>' + obj.list[i].name + '</span><br><span>' + obj.list[i].team + '</span>';
+                playerContent.innerHTML = '<span>' + obj.list[i].name + '</span>';
                 playerContent.className = 'playername';
                 _player.elm.appendChild(createPlayerImageElement(obj.list[i].image));
                 _player.elm.appendChild(playerContent);
@@ -510,6 +508,10 @@ function webSocketInit() {
             grids[obj.glogrid].tooltype = 0;
             grids[obj.glogrid].innerHTML = '';
             toolapply(obj)
+        } else if (obj.event === 'ufo_removal') {
+            if(obj.playerid !== thisPlayer.id) {
+                players.getPlayerById(obj.playerid).elm.classList.remove('penetrate');
+            }
         }
     };
 }
