@@ -97,14 +97,6 @@ var wsServer = new WebSocketServer({
 });
 wsServer.on("request",function(request){
   // console.log(request.requestedProtocols);
-  if(request.requestedProtocols[0]=="test"){
-    var cc_ = request.accept('test', request.origin);
-    cc_.on('close', function(){ /* console.log('QQ') */ });
-    cc_.on('open' , function(){  });
-
-    return;
-  }
-
   var connection = request.accept('game-protocol', request.origin);
 
   newPlayer(connection);
@@ -318,7 +310,7 @@ function checkEatTools(playerInfo) {
   }
   grids[pos].empty = true;
   grids[pos].type = 'empty';
-  console.log('Tool '+grids[pos].tool+' at ('+pos%13+','+pos/13+') eaten by '+playerInfo.playerid);
+  console.log('Tool '+grids[pos].tool+' at ('+pos%13+','+Math.floor(pos/13)+') eaten by '+playerInfo.playerid);
   sendObjToAllClient({
     event: 'tool_disappeared',
     glogrid: pos,
@@ -493,7 +485,7 @@ function grid_bombed(x, y) {
       y: y
     });
   } else if (grid.type === 'tool') {
-    console.log('Tool '+grids[pos].tool+' at ('+pos%13+','+pos/13+') bombed');
+    console.log('Tool '+grids[pos].tool+' at ('+pos%13+','+Math.floor(pos/13)+') bombed');
     sendObjToAllClient({
       event: 'tool_disappeared',
       glogrid: pos,

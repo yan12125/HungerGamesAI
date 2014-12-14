@@ -130,7 +130,7 @@ var pressedSeq = []; // 依序記錄被按的 keyCodes
 var KEYS = [];
 KEYS[37] = KEYS[38] = KEYS[39] = KEYS[40] = true;
 
-var bomblimit=0;
+var bomblimit=1;
 window.addEventListener('keydown', function (event) {
     var tkey = event.which;
     if(tkey===229)
@@ -138,7 +138,7 @@ window.addEventListener('keydown', function (event) {
     if (!KEYS[tkey]) {
         if (tkey === 32 && gameStarted) { // 空白鍵
             event.preventDefault();
-            if (!thisPlayer.dead && bombCount <= bomblimit) {
+            if (!thisPlayer.dead && bombCount < bomblimit) {
                 putBomb(
                 thisPlayer.id, Math.floor(thisPlayer.getX() / 60),
                 Math.floor(thisPlayer.getY() / 60));
@@ -327,21 +327,7 @@ function main() {
     var nowpos=target_grid_id;
 
     myBlockColor(nowpos);
-
-    if (grids[target_grid_id].classList.contains('tool')) {
-        if(grids[target_grid_id].tooltype===5) {
-            thisPlayerElm.classList.add('penetrate');
-        }
-        grids[target_grid_id].classList.remove('tool');
-        sendObjToServer({
-            event: 'tool_disappeared_by_eaten',
-            gridc: target_grid_id,
-            tooltype: grids[target_grid_id].tooltype,
-            eater:thisPlayer.id
-        });
-        grids[target_grid_id].tooltype = 0;
-        grids[target_grid_id].innerHTML = '';
-    }
+    // whether eat tool or not is checked by server
 
     for (var i = 0; i < 169; i += 1) {
         if (map[i] && map[i].type === 'empty' && !map[i].empty)
@@ -589,7 +575,7 @@ function toolapply(obj) {
   } else if(type === 2) { // random speed change
     distancePerIteration = Math.floor(Math.random() * 9) + 2;
   } else if(type === 3) { //increase bomb
-    if(bomblimit < 5) bomblimit += 1;
+    if(bomblimit <= 5) bomblimit += 1;
   } else if(type === 4) { //increase bomb power
     if(myBombingPower < 7)
       myBombingPower += 1;

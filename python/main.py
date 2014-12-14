@@ -2,54 +2,96 @@ import ws4py.client.threadedclient
 import json
 import random
 
-grids = None
+from player import Player
+from game_map import Map
+
+global_map = Map()
 players = {}
-pos = -1
-my_playerid = None
+thisPlayer_id = None
+thisPlayer_name = None
+
+def dump_players():
+    for player_id, player in players.items():
+        print(player)
 
 def handle_messages(event, data):
-    global grids, players, pos, my_playerid
+    global global_map, players, thisPlayer_id, thisPlayer_name
+
+    if event != 'player_position':
+        print('[event]', event)
+
+    # General events
     if event == 'playerid':
-        my_playerid = data['playerid']
-        print('My player id is', my_playerid)
+        thisPlayer_id = data['playerid']
+        print('My player id is', thisPlayer_id)
+        players[thisPlayer_id] = Player(thisPlayer_id, thisPlayer_name)
+
     elif event == 'map_initial':
-        grids = data['grids']
+        global_map.setGrids(data['grids'])
+
+    elif event == 'game_started':
+        print('Game started')
+        for player_id, player in players.items():
+            player.setPreparing()
+
     elif event == 'player_list':
         playersList = data['list']
         for player in playersList:
-            players[player['playerid']] = player
+            player_id = player['playerid']
+
+            # Create the player if not exist
+            if player_id not in players:
+                players[player_id] = Player(player_id, player['name'])
+
+            # Update info
+            players[player_id].setCoord(player['x'], player['y'])
+            players[player_id].updateStatus(dead=player['dead'], disconnected=player['disconnected'])
         print('Receive players')
-        print(json.dumps(players, indent=4))
+        dump_players()
+
     elif event == 'pos_initial':
-        pos = data['pos']
+        players[thisPlayer_id].setPos(data['pos'])
+
     elif event == 'player_position':
         playerid = data['playerid']
-        players[playerid]['pos'] = (data['x'], data['y'])
+        players[playerid].setCoord(data['x'], data['y'])
+
     elif event == 'player_offline':
         playerid = data['playerid']
         players.pop(playerid, None)
         print('Player %s is offline\nPlayers: ' % playerid)
-        print(players)
+        dump_players()
+
+    # bomb events
+    # tool events
+    elif event == 'tool_appeared':
+        global_map.toolAppeared(data)
+
+    elif event == 'tool_disappeared':
+        eater = data['eater']
+        tooltype = data['tooltype']
+        global_map.toolDisappeared(eater=eater, tooltype=tooltype, pos=data['glogrid'])
+        if eater != 'bomb':
+            players[eater].toolapply(tooltype)
+
     else:
         print('Unknown data')
         print(data)
 
 class WebSocketHandler(ws4py.client.threadedclient.WebSocketClient):
-    player_name = 'AI #'
-    player_team = 'AI'
-
     def __init__(self, *args, **kwargs):
+        global thisPlayer_name
         super(WebSocketHandler, self).__init__(*args, **kwargs)
-        self.player_name = self.player_name + str(random.randrange(0, 100))
+        thisPlayer_name = ('AI #%d' % random.randrange(0, 100))
 
     def sendJson(self, data):
         self.send(json.dumps(data))
 
     def opened(self):
+        global thisPlayer_name
         self.sendJson({
             'event': 'update_player_info',
-            'name': self.player_name,
-            'team': self.player_team
+            'name': thisPlayer_name
         })
 
     def closed(self, code, reason=None):
@@ -75,6 +117,7 @@ def main():
         ws.connect()
         ws.run_forever()
     except KeyboardInterrupt:
+        print("Exiting...")
         ws.close()
 
 if __name__ == '__main__':
