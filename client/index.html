@@ -100,17 +100,14 @@
 
         for (var i = 0, len = serversElm.length; i < len; i++) {
           (function(i, __thisServer){
-            var ws = new WebSocket('ws://' + __thisServer + '/', 'test');
-            ws.onopen = function() {
-              ws.onclose = function(){};
-              // console.log('ok');
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'http://' + __thisServer + '/test', false);
+            xhr.send();
+            if(xhr.status == 200) {
               serversElm[i].classList.add('ok');
-              ws.close();
-            };
-            ws.onclose = function(){
-              // console.log('gg');
+            } else {
               serversElm[i].classList.remove('ok');
-            };
+            }
           }(i, servers[i]));
         }
       })();

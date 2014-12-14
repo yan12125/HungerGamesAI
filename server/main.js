@@ -49,7 +49,8 @@ app.configure(function () {
 // Express router:
 // for start game
 app.get('/test', function(req, res) {
-  // TODO 回應訊息，表示這一個 ip:port 的伺服器還活著
+  // 回應訊息，表示這一個 ip:port 的伺服器還活著
+  res.send('ok');
 });
 
 /**
