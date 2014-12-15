@@ -62,20 +62,26 @@ var gameStarted = false;
 var stdin = process.openStdin();
 var sendObjToAll;
 var __gameStarting = false; // 記錄是否已經輸入過 go 了
-stdin.on('data', function(chunk) {
-  if (chunk.toString().search('go') === 0) {
-    // if (!gameStarted && !__gameStarting) {
-      __gameStarting = true; // 避免打太多次 go<Enter> 的問題
-      console.log('[Notice] Hunger Game is starting in 3 seconds...');
-      sendObjToAll({ event: 'game_started' });
-      setTimeout(function() {
-        gameStarted = true;
-        toolappear();
-        console.log('[Notice] Hunger Game has been successfully started.');
-      }, 3000);
-      //  } else {
-        //    console.log('[Notice] Hunger Game has been started.');
-        //  }
+
+app.get('/start_game', function (req, res) {
+  if(!wsConnections.length) {
+    res.send('No clients yet');
+  } else if (__gameStarting) {
+    res.send('game is starting');
+  } else if (gameStarted) {
+    res.send('game is already started');
+    console.log('[Notice] Hunger Game has been started.');
+  } else {
+    __gameStarting = true; // 避免打太多次 go<Enter> 的問題
+    console.log('[Notice] Hunger Game is starting in 3 seconds...');
+    sendObjToAll({ event: 'game_started' });
+    setTimeout(function() {
+      gameStarted = true;
+      __gameStarting = false;
+      toolappear();
+      console.log('[Notice] Hunger Game has been successfully started.');
+    }, 3000);
+    res.send('Starting game ok');
   }
 });
 
