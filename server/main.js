@@ -117,6 +117,14 @@ wsConnections.getConnectionById = function (uuid) {
     if (this[i] && this[i].playerInfo.playerid === uuid) return this[i];
 };
 
+process.on('exit', function (code) {
+  disconnectAll('server_down');
+  console.log('Exitting...');
+});
+process.on('SIGINT', function() {
+  process.exit();
+});
+
 function newPlayer(connection) {
   wsConnections.push(connection);
   console.log('A WebSocket connection is opened');
@@ -204,7 +212,11 @@ function newPlayer(connection) {
           playerInfoList.push(wsConnections[i].playerInfo);
         }
       }
-      var iniPos = coordCalc(randIniPos());
+      var _pos = randIniPos(true);
+      if (_pos === -1) {
+        throw "Failed to find a position for a new player";
+      }
+      var iniPos = coordCalc(_pos);
       connection.playerInfo.x = iniPos.x;
       connection.playerInfo.y = iniPos.y;
       // console.log(playerInfoList);
@@ -253,6 +265,14 @@ function sendObjToAllClient(obj) {
   }
 }
 
+function disconnectAll(desc) {
+  for(var i = 0;i<wsConnections.length;i++) {
+    if(wsConnections[i]) {
+      wsConnections[i].drop(1000, desc);
+    }
+  }
+}
+
 function iniMap() {
   var wall = require('./wall.js');
   for (var i = 0; i < 169; i++) {
@@ -268,19 +288,29 @@ function iniMap() {
   return;
 }
 
-function randIniPos() {
+function randIniPos(allowOnTool) {
   var test = Math.floor(Math.random() * 169);
   var round = 0;
+  var toolList = [];
   while (grids[test].type != 'empty') {
     test = Math.floor(Math.random() * 169);
     round++;
     if (round > 500) {
       test = Math.floor(Math.random() * 169);
-      for(var i=0;i<169;i++)
-        if(grids[(test+i)%169].type==='empty')
+      for(var i=0;i<169;i++) {
+        var idx = (test+i)%169;
+        var grid_type = grids[idx].type;
+        if(grid_type === 'empty') {
           return test+i;
-        return -1;
-        // map full, no empty grid found
+        } else if (grid_type === 'tool') {
+          toolList[idx] = true;
+        }
+      }
+      var toolsPos = Object.keys(toolList);
+      if(allowOnTool && toolsPos.length > 0) {
+        return toolsPos[Math.floor(Math.random() * toolsPos.length)];
+      }
+      return -1; // map full, no empty grid found
     }
   }
   return test;
@@ -358,7 +388,7 @@ function toolappear() {
   }
   */
   setTimeout(toolappear,Math.floor(Math.random() * 5000)+30000);
-  var getgrid = randIniPos();
+  var getgrid = randIniPos(false);
   if(getgrid !== -1) {
     toolappear_impl(getgrid);
   }
@@ -384,12 +414,7 @@ function player_bombed(playerid) {
       reason: 'dead'
     });
     //gameStarted = false;
-    for(var i = 0;i<wsConnections.length;i++) {
-      if(wsConnections[i]) {
-        wsConnections[i].drop(1000, 'game_end');
-        wsConnections[i].close();
-      }
-    }
+    disconnectAll('game_end');
   }
 }
 
@@ -465,12 +490,9 @@ function grid_bombed(x, y) {
   var pos = x + y * 13;
   var grid = grids[pos];
   //console.log("Grid ("+x+","+y+") bombed");
-  sendObjToAllClient({
-    event: 'grid_bombed',
-    x: x,
-    y: y
-  });
   //console.log(grids[pos].type);
+
+  /* Additional work before really bombing the grid */
   if (grid.type === 'vwall') {
     //console.log("VWall at ("+x+","+y+") vanished");
     var posibility=Math.floor(Math.random()*100);
@@ -493,6 +515,13 @@ function grid_bombed(x, y) {
       eater: 'bomb'
     });
   }
+
+  // Done the work
+  sendObjToAllClient({
+    event: 'grid_bombed',
+    x: x,
+    y: y
+  });
   grid.type = 'empty';
   grid.empty = true;
 }

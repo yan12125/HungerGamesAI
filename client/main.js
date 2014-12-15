@@ -24,6 +24,7 @@ var tools_img = [ "speed_up.png", "speed_change.png", "water_ball.png", "bombpow
  * 遊戲開始了沒？
  */
 var gameStarted = false;
+var mainRep = -1; // timer id for the main loop
 
 players.getPlayerById = function (uuid) {
     for (var i = 0, len = this.length; i < len; i += 1)
@@ -366,7 +367,7 @@ function webSocketInit() {
     ws.onclose = function (event) {
         if(event.reason === 'error_game_started') {
           alert('錯誤：遊戲已開始');
-        } else if(event.reason === 'game_end') {
+        } else {
           gameStarted = false;
           bomblimit = 0;
           myBombingPower = 1;
@@ -374,14 +375,20 @@ function webSocketInit() {
           players = null;
           distancePerIteration = 5;
           clearInterval(mainRep);
-          if(confirm('遊戲結束。重新載入？'))
-                location.reload();
+          if(event.reason == 'game_end' && confirm('遊戲結束。重新載入？')) {
+            location.reload();
+          } else if (event.reason == 'server_down') {
+            alert('Server掛了');
+          }
         }
         // log('WebSocket 關閉了。');
         ws = null;
         map = null;
-        document.getElementById('buttondiv').innerHTML='<button     id="connect-button">重新載入</button>';
-        document.getElementById('buttondiv').addEventListener('click',function(){location.reload();});
+        if(event.reason !== 'server_down') {
+          var btn = document.getElementById('buttondiv');
+          btn.innerHTML = '<button id="connect-button">重新載入</button>';
+          btn.getElementById('buttondiv').addEventListener('click',function(){location.reload();});
+        }
     };
 
     ws.onopen = function () {

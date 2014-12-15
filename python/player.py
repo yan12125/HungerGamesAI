@@ -69,6 +69,11 @@ class Player(object):
             # TODO Remove ufo after 15 seconds
         elif tooltype == 6:
             pass
+
+    def check_dead(self, pos):
+        # TODO check dead
+        pass
+
     def __str__(self):
         ret = 'Player %s "%s" at (%d, %d)' % (self.player_id, self.name, self.x, self.y)
         ret += ', grid (%d, %d)' % util.coordToGrid(self.x, self.y)
@@ -77,3 +82,11 @@ class Player(object):
         if self.dead:
             ret += ', dead'
         return ret
+
+    @staticmethod
+    def forAll(players, callback):
+        if not callable(callback):
+            raise Exception("Callable object required")
+
+        for player_id, player in players.items():
+            callback(player_id, player)
