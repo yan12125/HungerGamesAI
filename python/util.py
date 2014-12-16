@@ -15,6 +15,8 @@ grid_dimension = 60
 grid_count = map_dimension * map_dimension
 grid_generator = range(0, grid_count)
 
+loop = None # will be a TaskLoop object
+
 def posToGrid(pos):
     """
     Transform pos to (x, y)

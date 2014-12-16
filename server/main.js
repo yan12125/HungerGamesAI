@@ -173,6 +173,15 @@ function newPlayer(connection) {
         });
       }
     }
+    if(howManyPlayers() <= 0) {
+      iniMap();
+      // dicsonnect all clients with message 'game_end'
+      //gameStarted = false;
+      disconnectAll('game_end');
+      gameStarted = false;
+      __gameStarting = false;
+      console.log('[Notice] Hunger Game ends.');
+    }
   });
 
   connection.on('message', function (event) {
@@ -401,20 +410,6 @@ function player_bombed(playerid) {
   });
   conn.playerInfo.dead = true;
   conn.drop(1000, 'dead');
-  if(howManyPlayers() <= 0) {
-    iniMap();
-    // dicsonnect all clients with message 'game_end'
-    sendObjToAllClient({
-      event: 'player_offline',
-      playerid: playerid, 
-      reason: 'dead'
-    });
-    //gameStarted = false;
-    disconnectAll('game_end');
-    gameStarted = false;
-    __gameStarting = false;
-    console.log('[Notice] Hunger Game ends.');
-  }
 }
 
 function putBomb(playerid, x, y, bombingPower) {

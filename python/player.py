@@ -1,5 +1,6 @@
 import util
 import random
+from task_loop import TaskLoop
 
 class Player(object):
     # Static
@@ -28,7 +29,11 @@ class Player(object):
 
     def setPreparing(self):
         self.preparing = True
-        # TODO preparing = False after 3 seconds
+        print('Player %s "%s" is in preparing mode' % (self.player_id, self.name))
+        def __internal(player):
+            player.preparing = False
+            print('Player %s "%s" exits preparing mode' % (player.player_id, player.name))
+        util.loop.add_task(TaskLoop.delay, 3, __internal, self)
 
     def setPos(self, p_pos):
         """

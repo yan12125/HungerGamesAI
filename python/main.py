@@ -8,16 +8,15 @@ gevent.monkey.patch_all()
 
 import json
 import random
-import queue
 import ws4py.client
 
 from player import Player
 from game_map import Map
 import util
+from task_loop import TaskLoop
 
 global_map = Map()
 players = {}
-loop = None
 
 def dump_players():
     for player_id, player in players.items():
@@ -39,9 +38,13 @@ def handle_messages(event, data):
 
     elif event == 'game_started':
         print('Game started')
-        for player_id, player in players.items():
-            loop.add_task()
-            player.setPreparing()
+        def __internal():
+            for player_id, player in players.items():
+                player.setPreparing()
+        if data['already_started']:
+            __internal()
+        else:
+            util.loop.add_task(TaskLoop.delay, 3, __internal)
 
     elif event == 'player_list':
         playersList = data['list']
@@ -137,35 +140,16 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
     def closed(self, code, reason=None):
         print("Closed down, code = %d, reason = %s" % (code, reason))
 
-class TaskLoop(object):
-    q =  queue.Queue()
-    lastIsSearch = False
-
-    def __init__(self):
-        pass
-
-    def add_task(self, isSearch, callback, *args, **kwargs):
-        if isSearch and self.lastIsSearch:
-            return
-        if isSearch:
-            self.lastIsSearch = True
-        self.q.put((callback, args, kwargs))
-
-    def run(self):
-        while True:
-            gevent.sleep()
-            callback, args, kwargs = self.q.get()
-            callback(*args, **kwargs)
-
 def main():
-    loop = TaskLoop()
+    util.loop = TaskLoop()
 
     try:
         ws = WebSocketHandler('ws://localhost:3000/', protocols=[ 'game-protocol' ])
         ws.connect()
         #ws.run_forever()
-        gevent.joinall([ ws._th, gevent.spawn(loop.run) ])
+        gevent.joinall([ ws._th, gevent.spawn(util.loop.run) ])
     except KeyboardInterrupt:
+        util.loop.running = False
         print("Exiting...")
         ws.close()
 
