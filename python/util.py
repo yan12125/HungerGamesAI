@@ -10,8 +10,10 @@ tools_map = {
 }
 
 map_dimension = 13
+map_generator = range(0, map_dimension)
 grid_dimension = 60
 grid_count = map_dimension * map_dimension
+grid_generator = range(0, grid_count)
 
 def posToGrid(pos):
     """

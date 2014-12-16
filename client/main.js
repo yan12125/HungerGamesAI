@@ -13,7 +13,7 @@ var grids = document.getElementById('gridsContainer').childNodes;
  */
 var myBombingPower = 1; // default value
 var bombCount = 0;
-var preparing = true;
+var preparing = false;
 /**
  * 使用一個陣列，儲存所有玩家的資訊
  */
@@ -377,6 +377,8 @@ function webSocketInit() {
           clearInterval(mainRep);
           if(event.reason == 'game_end' && confirm('遊戲結束。重新載入？')) {
             location.reload();
+          } else if (event.reason == 'dead') {
+            alert('你已經死了');
           } else if (event.reason == 'server_down') {
             alert('Server掛了');
           }
@@ -387,7 +389,7 @@ function webSocketInit() {
         if(event.reason !== 'server_down') {
           var btn = document.getElementById('buttondiv');
           btn.innerHTML = '<button id="connect-button">重新載入</button>';
-          btn.getElementById('buttondiv').addEventListener('click',function(){location.reload();});
+          btn.addEventListener('click',function(){location.reload();});
         }
     };
 
@@ -421,15 +423,21 @@ function webSocketInit() {
          ***********/
         // log('<< WebSocket 收到訊息: ' + msg);
         if(obj.event === 'game_started') {
-          countDown(3, document.getElementById('timer-preparing'));
-          setTimeout(function(){
+          var __internal = function() {
             gameStarted = true;
+            preparing = true;
             mainRep = setInterval(main, 1000 / 60);
             // 3秒無敵
             setTimeout(function () {
               preparing = false;
             }, 3000);
-          },3000);    // 3000 milliseconds for preparing,
+          };
+          if (obj.already_started) {
+            __internal();
+          } else {
+            countDown(3, document.getElementById('timer-preparing'));
+            setTimeout(__internal,3000);    // 3000 milliseconds for preparing,
+          }
         } else if (obj.event === 'playerid') {
             /** it ends here */
             thisPlayer.id = obj.playerid;
@@ -545,12 +553,6 @@ function grid_bombed(x, y, status) {
     }
   } else {
     grids[pos].classList.remove('bombed');
-  }
-  if (!preparing && (x === Math.floor(thisPlayer.getX() / 60) && y === Math.floor(thisPlayer.getY() / 60))) {
-    sendObjToServer({
-      event: 'player_bombed',
-      playerid: thisPlayer.id
-    });
   }
   if(map[pos].type == 'bomb') {
     map[pos].type = 'empty';

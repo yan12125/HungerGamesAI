@@ -8,24 +8,21 @@ import util
 
 global_map = Map()
 players = {}
-thisPlayer_id = None
-thisPlayer_name = None
 
 def dump_players():
     for player_id, player in players.items():
         print(player)
 
 def handle_messages(event, data):
-    global thisPlayer_id
 
     if event != 'player_position':
         print('[event]', event)
 
     # General events
     if event == 'playerid':
-        thisPlayer_id = data['playerid']
-        print('My player id is', thisPlayer_id)
-        players[thisPlayer_id] = Player(thisPlayer_id, thisPlayer_name)
+        Player.thisPlayer_id = data['playerid']
+        print('My player id is', Player.thisPlayer_id)
+        players[Player.thisPlayer_id] = Player(Player.thisPlayer_id, Player.thisPlayer_name)
 
     elif event == 'map_initial':
         global_map.setGrids(data['grids'])
@@ -51,7 +48,7 @@ def handle_messages(event, data):
         dump_players()
 
     elif event == 'pos_initial':
-        players[thisPlayer_id].setPos(data['pos'])
+        players[Player.thisPlayer_id].setPos(data['pos'])
 
     elif event == 'player_position':
         playerid = data['playerid']
@@ -70,11 +67,11 @@ def handle_messages(event, data):
     elif event == 'grid_bombed':
         global_map.gridBombed(util.gridToPos(data['x'], data['y']))
 
-        pos = (data['x'], data['y'])
-        Player.forAll(players, lambda player_id, player : player.check_dead(pos))
-
     elif event == 'wall_vanish':
         global_map.wallBombed(util.gridToPos(data['x'], data['y']))
+
+    elif event == 'player_bombed':
+        players[data['playerid']].bombed()
 
     # tool events
     elif event == 'tool_appeared':
@@ -93,9 +90,9 @@ def handle_messages(event, data):
 
 class WebSocketHandler(ws4py.client.threadedclient.WebSocketClient):
     def __init__(self, *args, **kwargs):
-        global thisPlayer_name
         super(WebSocketHandler, self).__init__(*args, **kwargs)
-        thisPlayer_name = ('AI #%d' % random.randrange(0, 100))
+        Player.thisPlayer_name = 'AI #%d' % random.randrange(0, 100)
+        print('My name is %s' % Player.thisPlayer_name)
 
     def sendJson(self, data):
         self.send(json.dumps(data))
@@ -103,7 +100,7 @@ class WebSocketHandler(ws4py.client.threadedclient.WebSocketClient):
     def opened(self):
         self.sendJson({
             'event': 'update_player_info',
-            'name': thisPlayer_name
+            'name': Player.thisPlayer_name
         })
 
     def closed(self, code, reason=None):

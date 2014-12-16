@@ -28,17 +28,9 @@ var WEB_SERVER_PORT = commander.port || 3000;
 var app = module.exports = express.createServer();
 
 app.configure(function () {
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'ejs');
   app.use(express.errorHandler({
     dumpExceptions: true,
     showStack: true
-  }));
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(express.cookieParser());
-  app.use(express.session({
-    secret: 'your secret here'
   }));
   app.use(app.router);
 
@@ -57,24 +49,26 @@ app.get('/test', function(req, res) {
 * game started?
 */
 var gameStarted = false;
-// 使用 stdin 取代 HTTP GET 方法
-// 如果使用者在 standard input 輸入 go<Enter> 則遊戲會開始
-var stdin = process.openStdin();
-var sendObjToAll;
 var __gameStarting = false; // 記錄是否已經輸入過 go 了
 
 app.get('/start_game', function (req, res) {
   if(!wsConnections.length) {
     res.send('No clients yet');
+    return;
   } else if (__gameStarting) {
     res.send('game is starting');
+    return;
   } else if (gameStarted) {
     res.send('game is already started');
     console.log('[Notice] Hunger Game has been started.');
+    return;
   } else {
     __gameStarting = true; // 避免打太多次 go<Enter> 的問題
     console.log('[Notice] Hunger Game is starting in 3 seconds...');
-    sendObjToAll({ event: 'game_started' });
+    sendObjToAllClient({
+      event: 'game_started', 
+      already_started: false
+    });
     setTimeout(function() {
       gameStarted = true;
       __gameStarting = false;
@@ -107,8 +101,6 @@ wsServer.on("request",function(request){
 
   newPlayer(connection);
 });
-sendObjToAll=sendObjToAllClient;
-//sendObjToAllClient();
 /**
 * images URL
 */
@@ -149,14 +141,20 @@ function newPlayer(connection) {
   /** TODO image/player correspondence*/
   connection.playerInfo.image = images[wsConnections.indexOf(connection)%6];
 
-  connection.sendUTF(JSON.stringify({
+  sendObjToClient({
     event: 'playerid',
     playerid: connection.playerInfo.playerid
-  }));
-  connection.sendUTF(JSON.stringify({
+  }, connection);
+  sendObjToClient({
     event: 'map_initial',
     grids: grids
-  }));
+  }, connection);
+  if ( gameStarted ) {
+    sendObjToClient({
+      event: 'game_started', 
+      already_started: true
+    }, connection);
+  }
 
   connection.on('close', function (reasonCode, description) {
     var idx = wsConnections.indexOf(connection);
@@ -174,17 +172,6 @@ function newPlayer(connection) {
           reason: 'just_offline'
         });
       }
-    }
-    /** edition by ping
-    if (wsConnections.length < 1) {
-    iniMap();
-    }
-    /** end of edition*/
-    if(howManyPlayers()<=0) {
-      iniMap();
-      gameStarted = false;
-      __gameStarting = false;
-      console.log('[Notice] Hunger Game ends.');
     }
   });
 
@@ -245,10 +232,6 @@ function newPlayer(connection) {
     /** bomb starts here */
     else if (obj.event === 'put_bomb') {
       putBomb(obj.playerid, obj.x, obj.y, obj.bombingPower);
-    } else if (obj.event === 'player_bombed') {
-      if (obj.playerid) {
-        player_bombed(obj.playerid);
-      }
     }
     /** bomb ends here */
     /** tool starts here */
@@ -273,13 +256,14 @@ function sendObjToAllClient(obj) {
 
 function disconnectAll(desc) {
   for(var i = 0;i<wsConnections.length;i++) {
-    if(wsConnections[i]) {
+    if(wsConnections[i] && wsConnections[i].connected) {
       wsConnections[i].drop(1000, desc);
     }
   }
 }
 
 function iniMap() {
+  console.log('[Notice] Initializing the map...');
   var wall = require('./wall.js');
   for (var i = 0; i < 169; i++) {
     grids[i] = {};
@@ -405,14 +389,20 @@ function toolappear() {
 /** bomb starts here */
 
 function player_bombed(playerid) {
+  //console.log('Player ' + wsConnections.getConnectionById(playerid).playerInfo.name + ' was bombed');
+  var conn = wsConnections.getConnectionById(playerid);
+
+  if (conn.playerInfo.dead) {
+    return;
+  }
   sendObjToAllClient({
     event: 'player_bombed',
     playerid: playerid
   });
-  //console.log('Player ' + wsConnections.getConnectionById(playerid).playerInfo.name + ' was bombed');
-  wsConnections.getConnectionById(playerid).playerInfo.dead = true;
-  if(howManyPlayers() <= 1) {
-    //iniMap();
+  conn.playerInfo.dead = true;
+  conn.drop(1000, 'dead');
+  if(howManyPlayers() <= 0) {
+    iniMap();
     // dicsonnect all clients with message 'game_end'
     sendObjToAllClient({
       event: 'player_offline',
@@ -421,6 +411,9 @@ function player_bombed(playerid) {
     });
     //gameStarted = false;
     disconnectAll('game_end');
+    gameStarted = false;
+    __gameStarting = false;
+    console.log('[Notice] Hunger Game ends.');
   }
 }
 
@@ -520,6 +513,12 @@ function grid_bombed(x, y) {
       tooltype: grids[pos].tool,
       eater: 'bomb'
     });
+  }
+  for (var i = 0; i < wsConnections.length; i++) {
+    var info = wsConnections[i].playerInfo;
+    if (x == Math.floor(info.x / 60) && y == Math.floor(info.y / 60)) {
+      player_bombed(info.playerid);
+    }
   }
 
   // Done the work

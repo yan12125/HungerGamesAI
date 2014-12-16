@@ -1,32 +1,26 @@
 import util
+import texttable
 
 class Grid(object):
-    grid_symbol = {
-        'empty': ' ', 
-        'bomb': 'b', 
-        'vwall': 'w', 
-        'nvwall': 'n'
-    }
-
     grid_type = None
     tool = None
 
     def __str__(self):
-       if self.grid_type in self.grid_symbol:
-           return self.grid_symbol[self.grid_type]
-       elif self.grid_type == 'tool':
-           return str(self.tool)
-       else:
-           raise Exception('Unknown grid type', self.grid_type)
+        if self.grid_type == 'tool':
+            return util.tools_map[self.tool]
+        elif self.grid_type == 'empty':
+            return ''
+        else:
+            return self.grid_type
 
 class Map(object):
-    grids = [ Grid() for i in range(0, util.grid_count) ] # indexed by pos
+    grids = [ Grid() for i in util.grid_generator ] # indexed by pos
 
     def __init__(self):
         pass
 
     def setGrids(self, remote_grids):
-        for i in range(0, util.grid_count):
+        for i in util.grid_generator:
             grid = self.grids[i]
             remote_grid = remote_grids[i]
 
@@ -34,6 +28,7 @@ class Map(object):
             if grid.grid_type == 'tool':
                 grid.tool = remote_grid['tool']
                 print('Initial tool %s at %s' % (util.tools_map[grid.tool], util.posToGridStr(i)))
+        self.dumpGrids()
 
     def toolAppeared(self, pos, tooltype):
         grid = self.grids[pos]
@@ -70,12 +65,17 @@ class Map(object):
         # Grid settings already done in gridBombed()
 
     def dumpGrids(self):
-        print(str(self))
+        strings = self.gridStrings()
+        def _transform(string):
+            if len(string) > 4:
+                return string[0:2] + '\n' + string[2:4]
+            elif len(string) > 2:
+                return string[0:2] + '\n' + string[2:]
+            else:
+                return string
+        table = texttable.Texttable()
+        table.add_rows([ [ _transform(strings[util.gridToPos(x, y)]) for x in util.map_generator ] for y in util.map_generator ])
+        print(table.draw())
 
-    def __str__(self):
-        output_str = ''
-        for y in range(0, util.map_dimension):
-            for x in range(0, util.map_dimension):
-                output_str += str(self.grids[util.gridToPos(x, y)])
-            output_str += '\n'
-        return output_str
+    def gridStrings(self):
+        return [ str(self.grids[pos]) for pos in util.grid_generator ]

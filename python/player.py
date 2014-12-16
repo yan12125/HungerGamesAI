@@ -4,6 +4,7 @@ import random
 class Player(object):
     # Static
     thisPlayer_id = None
+    thisPlayer_name = None
 
     player_id = None
     x = -1
@@ -31,8 +32,8 @@ class Player(object):
 
     def setPos(self, p_pos):
         """
-            Set (x, y) coordinate from 0-based grid position `pos`
-            See coordCalc() in server/main.js
+        Set (x, y) coordinate from 0-based grid position `pos`
+        See coordCalc() in server/main.js
         """
         coord = util.posToGrid(p_pos)
         self.setCoord(coord[0] * 60 + 30, coord[1] * 60 + 30)
@@ -43,7 +44,7 @@ class Player(object):
 
     def updateStatus(self, dead, disconnected):
         """
-            Always use named arguments on calling
+        Always use named arguments on calling
         """
         self.dead = dead
         self.disconnected = disconnected
@@ -70,9 +71,10 @@ class Player(object):
         elif tooltype == 6:
             pass
 
-    def check_dead(self, pos):
-        # TODO check dead
-        pass
+    def bombed(self):
+        if not self.preparing:
+            self.dead = True
+        # Connection is closed by the server
 
     def __str__(self):
         ret = 'Player %s "%s" at (%d, %d)' % (self.player_id, self.name, self.x, self.y)
