@@ -1,5 +1,5 @@
 import gevent
-import queue
+from compat import queue
 
 class TaskLoop(object):
     q =  queue.Queue()

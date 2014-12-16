@@ -178,9 +178,11 @@ function newPlayer(connection) {
       // dicsonnect all clients with message 'game_end'
       //gameStarted = false;
       disconnectAll('game_end');
+      if (gameStarted || __gameStarting) {
+        console.log('[Notice] Hunger Game ends.');
+      }
       gameStarted = false;
       __gameStarting = false;
-      console.log('[Notice] Hunger Game ends.');
     }
   });
 
