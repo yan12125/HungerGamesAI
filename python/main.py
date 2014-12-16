@@ -1,6 +1,15 @@
-import ws4py.client.threadedclient
+import gevent
+import gevent.monkey
+
+# Make standard library compatible with gevent
+# should be called before importing 'threading'
+# ihttp://stackoverflow.com/questions/8774958/keyerror-in-module-threading-after-a-successful-py-test-run
+gevent.monkey.patch_all()
+
 import json
 import random
+import queue
+import ws4py.client
 
 from player import Player
 from game_map import Map
@@ -8,6 +17,7 @@ import util
 
 global_map = Map()
 players = {}
+loop = None
 
 def dump_players():
     for player_id, player in players.items():
@@ -16,12 +26,12 @@ def dump_players():
 def handle_messages(event, data):
 
     if event != 'player_position':
-        print('[event]', event)
+        print('[event] %s' % event)
 
     # General events
     if event == 'playerid':
         Player.thisPlayer_id = data['playerid']
-        print('My player id is', Player.thisPlayer_id)
+        print('My player id is %s' % Player.thisPlayer_id)
         players[Player.thisPlayer_id] = Player(Player.thisPlayer_id, Player.thisPlayer_name)
 
     elif event == 'map_initial':
@@ -30,6 +40,7 @@ def handle_messages(event, data):
     elif event == 'game_started':
         print('Game started')
         for player_id, player in players.items():
+            loop.add_task()
             player.setPreparing()
 
     elif event == 'player_list':
@@ -88,9 +99,12 @@ def handle_messages(event, data):
         print('Unknown data')
         print(data)
 
-class WebSocketHandler(ws4py.client.threadedclient.WebSocketClient):
+class WebSocketHandler(ws4py.client.WebSocketBaseClient):
     def __init__(self, *args, **kwargs):
         super(WebSocketHandler, self).__init__(*args, **kwargs)
+
+        self._th = gevent.Greenlet(self.run)
+
         Player.thisPlayer_name = 'AI #%d' % random.randrange(0, 100)
         print('My name is %s' % Player.thisPlayer_name)
 
@@ -103,8 +117,8 @@ class WebSocketHandler(ws4py.client.threadedclient.WebSocketClient):
             'name': Player.thisPlayer_name
         })
 
-    def closed(self, code, reason=None):
-        print("Closed down, code = %d, reason = %s" % (code, reason))
+    def handshake_ok(self):
+        self._th.start()
 
     def received_message(self, data):
         try:
@@ -120,11 +134,37 @@ class WebSocketHandler(ws4py.client.threadedclient.WebSocketClient):
         event = obj['event']
         handle_messages(event, obj)
 
+    def closed(self, code, reason=None):
+        print("Closed down, code = %d, reason = %s" % (code, reason))
+
+class TaskLoop(object):
+    q =  queue.Queue()
+    lastIsSearch = False
+
+    def __init__(self):
+        pass
+
+    def add_task(self, isSearch, callback, *args, **kwargs):
+        if isSearch and self.lastIsSearch:
+            return
+        if isSearch:
+            self.lastIsSearch = True
+        self.q.put((callback, args, kwargs))
+
+    def run(self):
+        while True:
+            gevent.sleep()
+            callback, args, kwargs = self.q.get()
+            callback(*args, **kwargs)
+
 def main():
+    loop = TaskLoop()
+
     try:
         ws = WebSocketHandler('ws://localhost:3000/', protocols=[ 'game-protocol' ])
         ws.connect()
-        ws.run_forever()
+        #ws.run_forever()
+        gevent.joinall([ ws._th, gevent.spawn(loop.run) ])
     except KeyboardInterrupt:
         print("Exiting...")
         ws.close()
