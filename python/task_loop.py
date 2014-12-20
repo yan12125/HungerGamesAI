@@ -1,8 +1,9 @@
 import gevent
 from compat import queue
 
+
 class TaskLoop(object):
-    q =  queue.Queue()
+    q = queue.Queue()
     running = True
 
     def __init__(self):
@@ -21,4 +22,3 @@ class TaskLoop(object):
     def delay(nSeconds, callback, *args, **kwargs):
         gevent.sleep(nSeconds)
         callback(*args, **kwargs)
-

@@ -2,10 +2,10 @@ import util
 import random
 from task_loop import TaskLoop
 
+
 class Player(object):
     # Static
     thisPlayer_id = None
-    thisPlayer_name = None
 
     player_id = None
     x = -1
@@ -16,12 +16,12 @@ class Player(object):
 
     # Tools related parameters
     preparing = False
-    speed = 5 # -1 indicated unknown
+    speed = 5  # -1 indicated unknown
     bombPower = 1
     bombLimit = 5
     bombCount = 0
-    penetrate = False # whether able to bypass walls
-    god_mod = False # not killed by bombs
+    penetrate = False  # whether able to bypass walls
+    god_mod = False  # not killed by bombs
 
     def __init__(self, p_id, p_name):
         self.player_id = p_id
@@ -29,10 +29,12 @@ class Player(object):
 
     def setPreparing(self):
         self.preparing = True
-        print('Player %s "%s" is in preparing mode' % (self.player_id, self.name))
+        print('Player %s is in preparing mode' % self.player_id)
+
         def __internal(player):
             player.preparing = False
-            print('Player %s "%s" exits preparing mode' % (player.player_id, player.name))
+            print('Player %s exits preparing mode' % player.player_id)
+
         util.loop.add_task(TaskLoop.delay, 3, __internal, self)
 
     def setPos(self, p_pos):
@@ -60,7 +62,7 @@ class Player(object):
                 self.speed += 1
         elif tooltype == 2:
             if Player.thisPlayer_id == self.player_id:
-                self.speed = random.randrange(2, 11) # 2~10
+                self.speed = random.randrange(2, 11)  # 2~10
             else:
                 self.speed = -1
         elif tooltype == 3:
@@ -82,7 +84,8 @@ class Player(object):
         # Connection is closed by the server
 
     def __str__(self):
-        ret = 'Player %s "%s" at (%d, %d)' % (self.player_id, self.name, self.x, self.y)
+        ret = 'Player %s "%s"' % self.player_id, self.name
+        ret += ' at (%d, %d)' % self.x, self.y
         ret += ', grid (%d, %d)' % util.coordToGrid(self.x, self.y)
         if self.disconnected:
             ret += ', disconnected'

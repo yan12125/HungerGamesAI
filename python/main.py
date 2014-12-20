@@ -3,7 +3,7 @@ import gevent.monkey
 
 # Make standard library compatible with gevent
 # should be called before importing 'threading'
-# ihttp://stackoverflow.com/questions/8774958/keyerror-in-module-threading-after-a-successful-py-test-run
+# http://stackoverflow.com/questions/8774958/keyerror-in-module-threading-after-a-successful-py-test-run
 gevent.monkey.patch_all()
 
 import json
@@ -17,10 +17,13 @@ from task_loop import TaskLoop
 
 global_map = Map()
 players = {}
+thisPlayer_name = None
+
 
 def dump_players():
     for player_id, player in players.items():
         print(player)
+
 
 def handle_messages(event, data):
 
@@ -29,18 +32,20 @@ def handle_messages(event, data):
 
     # General events
     if event == 'playerid':
-        Player.thisPlayer_id = data['playerid']
+        player_id = Player.thisPlayer_id = data['playerid']
         print('My player id is %s' % Player.thisPlayer_id)
-        players[Player.thisPlayer_id] = Player(Player.thisPlayer_id, Player.thisPlayer_name)
+        players[player_id] = Player(Player.thisPlayer_id, thisPlayer_name)
 
     elif event == 'map_initial':
         global_map.setGrids(data['grids'])
 
     elif event == 'game_started':
         print('Game started')
+
         def __internal():
             for player_id, player in players.items():
                 player.setPreparing()
+
         if data['already_started']:
             __internal()
         else:
@@ -56,8 +61,9 @@ def handle_messages(event, data):
                 players[player_id] = Player(player_id, player['name'])
 
             # Update info
-            players[player_id].setCoord(player['x'], player['y'])
-            players[player_id].updateStatus(dead=player['dead'], disconnected=player['disconnected'])
+            player = players[player_id]
+            player.setCoord(player['x'], player['y'])
+            player.updateStatus(player['dead'], player['disconnected'])
         print('Receive players')
         dump_players()
 
@@ -94,7 +100,8 @@ def handle_messages(event, data):
     elif event == 'tool_disappeared':
         eater = data['eater']
         tooltype = data['tooltype']
-        global_map.toolDisappeared(eater=eater, tooltype=tooltype, pos=data['glogrid'])
+        pos = data['glogrid']
+        global_map.toolDisappeared(eater=eater, tooltype=tooltype, pos=pos)
         if eater != 'bomb':
             players[eater].toolapply(tooltype)
 
@@ -102,14 +109,16 @@ def handle_messages(event, data):
         print('Unknown data')
         print(data)
 
+
 class WebSocketHandler(ws4py.client.WebSocketBaseClient):
     def __init__(self, *args, **kwargs):
+        global thisPlayer_name
         super(WebSocketHandler, self).__init__(*args, **kwargs)
 
         self._th = gevent.Greenlet(self.run)
 
-        Player.thisPlayer_name = 'AI #%d' % random.randrange(0, 100)
-        print('My name is %s' % Player.thisPlayer_name)
+        thisPlayer_name = 'AI #%d' % random.randrange(0, 100)
+        print('My name is %s' % thisPlayer_name)
 
     def sendJson(self, data):
         self.send(json.dumps(data))
@@ -117,7 +126,7 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
     def opened(self):
         self.sendJson({
             'event': 'update_player_info',
-            'name': Player.thisPlayer_name
+            'name': thisPlayer_name
         })
 
     def handshake_ok(self):
@@ -125,7 +134,7 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
 
     def received_message(self, data):
         try:
-            obj = json.loads(str(data)) # data is in fact a Message Object
+            obj = json.loads(str(data))  # data is in fact a Message Object
         except:
             print('Invalid JSON from server: %s' % data)
             return
@@ -140,14 +149,16 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
     def closed(self, code, reason=None):
         print("Closed down, code = %d, reason = %s" % (code, reason))
 
+
 def main():
     util.loop = TaskLoop()
 
     try:
-        ws = WebSocketHandler('ws://localhost:3000/', protocols=[ 'game-protocol' ])
+        addr = 'ws://localhost:3000/'
+        ws = WebSocketHandler(addr, protocols=['game-protocol'])
         ws.connect()
-        #ws.run_forever()
-        gevent.joinall([ ws._th, gevent.spawn(util.loop.run) ])
+        # ws.run_forever()
+        gevent.joinall([ws._th, gevent.spawn(util.loop.run)])
     except KeyboardInterrupt:
         util.loop.running = False
         print("Exiting...")

@@ -1,33 +1,24 @@
 import util
 import texttable
+import grid
 
-class Grid(object):
-    grid_type = None
-    tool = None
-
-    def __str__(self):
-        if self.grid_type == 'tool':
-            return util.tools_map[self.tool]
-        elif self.grid_type == 'empty':
-            return ''
-        else:
-            return self.grid_type
 
 class Map(object):
-    grids = [ Grid() for i in util.grid_generator ] # indexed by pos
+    grids = [grid.Grid() for i in util.grid_gen]  # indexed by pos
 
     def __init__(self):
         pass
 
     def setGrids(self, remote_grids):
-        for i in util.grid_generator:
+        for i in util.grid_gen:
             grid = self.grids[i]
             remote_grid = remote_grids[i]
 
             grid.grid_type = remote_grid['type']
             if grid.grid_type == 'tool':
                 grid.tool = remote_grid['tool']
-                print('Initial tool %s at %s' % (util.tools_map[grid.tool], util.posToGridStr(i)))
+                toolname = util.tools_map[grid.tool]
+                print('Initial tool %s at %s' % toolname, util.posToGridStr(i))
         self.dumpGrids()
 
     def toolAppeared(self, pos, tooltype):
@@ -35,15 +26,17 @@ class Map(object):
 
         grid.grid_type = 'tool'
         grid.tool = tooltype
+        toolname = util.tools_map[grid.tool]
 
-        print('Tool %s appeared at %s' % (util.tools_map[grid.tool], util.posToGrid(pos)))
+        print('Tool %s appeared at %s' % (toolname, util.posToGrid(pos)))
 
         self.dumpGrids()
 
     def toolDisappeared(self, eater, tooltype, pos):
         grid = self.grids[pos]
+        toolname = util.tools_map[grid.tool]
 
-        print('Tool %s at %s disappeared' % (util.tools_map[grid.tool], util.posToGrid(pos)))
+        print('Tool %s at %s disappeared' % (toolname, util.posToGrid(pos)))
 
         grid.grid_type = 'empty'
         grid.tool = None
@@ -65,7 +58,7 @@ class Map(object):
         # Grid settings already done in gridBombed()
 
     def dumpGrids(self):
-        strings = self.gridStrings()
+
         def _transform(string):
             if len(string) > 4:
                 return string[0:2] + '\n' + string[2:4]
@@ -73,9 +66,13 @@ class Map(object):
                 return string[0:2] + '\n' + string[2:]
             else:
                 return string
+
+        strings = self.gridStrings()
+        gridStrings = [_transform(strings[pos]) for pos in util.grid_gen]
+
         table = texttable.Texttable()
-        table.add_rows([ [ _transform(strings[util.gridToPos(x, y)]) for x in util.map_generator ] for y in util.map_generator ])
+        table.add_rows(util.linearGridToMap(gridStrings))
         print(table.draw())
 
     def gridStrings(self):
-        return [ str(self.grids[pos]) for pos in util.grid_generator ]
+        return [str(self.grids[pos]) for pos in util.grid_gen]
