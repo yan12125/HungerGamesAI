@@ -4,7 +4,6 @@ from compat import queue
 
 class TaskLoop(object):
     q = queue.Queue()
-    running = True
 
     def __init__(self):
         pass
@@ -12,10 +11,17 @@ class TaskLoop(object):
     def add_task(self, callback, *args, **kwargs):
         self.q.put((callback, args, kwargs))
 
+    def add_finished_task(self):
+        self.add_task('finished', None, None)
+        print('Task loop is going to be terminated')
+
     def run(self):
-        while self.running:
+        while True:
             gevent.sleep()
             callback, args, kwargs = self.q.get()
+            if callback == 'finished':
+                print('Task loop exits')
+                break
             callback(*args, **kwargs)
 
     @staticmethod

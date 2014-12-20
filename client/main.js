@@ -330,9 +330,9 @@ function gridCalc(x, y) {
 function myBlockColor(nowpos) {
     for (var i = 0; i < 169; i += 1) {
         if (i === nowpos) {
-            gridObj.classList.add('active');
+            grids[i].classList.add('active');
         } else {
-            gridObj.classList.remove('active');
+            grids[i].classList.remove('active');
         }
     }
 }

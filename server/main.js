@@ -181,6 +181,7 @@ function newPlayer(connection) {
       if (gameStarted || __gameStarting) {
         console.log('[Notice] Hunger Game ends.');
       }
+      wsConnections = [];
       gameStarted = false;
       __gameStarting = false;
     }
@@ -400,10 +401,10 @@ function toolappear() {
 /** bomb starts here */
 
 function player_bombed(playerid) {
-  //console.log('Player ' + wsConnections.getConnectionById(playerid).playerInfo.name + ' was bombed');
+  console.log('Player ' + playerid + ' was bombed');
   var conn = wsConnections.getConnectionById(playerid);
 
-  if (conn.playerInfo.dead) {
+  if (conn.playerInfo.dead || conn.playerInfo.disconnected) {
     return;
   }
   sendObjToAllClient({

@@ -27,6 +27,9 @@ class Player(object):
         self.player_id = p_id
         self.name = p_name
 
+    def isMe(self):
+        return self.player_id == Player.thisPlayer_id
+
     def setPreparing(self):
         self.preparing = True
         print('Player %s is in preparing mode' % self.player_id)
@@ -46,6 +49,9 @@ class Player(object):
         self.setCoord(coord[0] * 60 + 30, coord[1] * 60 + 30)
 
     def setCoord(self, _x, _y):
+        if self.isMe() and (self.x, self.y) != (-1, -1):
+            # FIXME race condition between server and client
+            return
         self.x = _x
         self.y = _y
 
@@ -61,7 +67,7 @@ class Player(object):
             if self.speed < 10:
                 self.speed += 1
         elif tooltype == 2:
-            if Player.thisPlayer_id == self.player_id:
+            if self.isMe():
                 self.speed = random.randrange(2, 11)  # 2~10
             else:
                 self.speed = -1
@@ -74,18 +80,25 @@ class Player(object):
             pass
         elif tooltype == 5:
             self.penetrate = True
-            # TODO Remove ufo after 15 seconds
+            if self.isMe():
+                util.loop.add_task(TaskLoop.delay, 15, Player.dropUfo, self)
         elif tooltype == 6:
             pass
+
+    def dropUfo(self):
+        # TODO Check still in wall grids or not
+        pass
 
     def bombed(self):
         if not self.preparing:
             self.dead = True
+        if self.isMe():
+            util.mark_finished()
         # Connection is closed by the server
 
     def __str__(self):
-        ret = 'Player %s "%s"' % self.player_id, self.name
-        ret += ' at (%d, %d)' % self.x, self.y
+        ret = 'Player %s "%s"' % (self.player_id, self.name)
+        ret += ' at (%d, %d)' % (self.x, self.y)
         ret += ', grid (%d, %d)' % util.coordToGrid(self.x, self.y)
         if self.disconnected:
             ret += ', disconnected'

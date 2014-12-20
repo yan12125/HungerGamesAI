@@ -1,3 +1,5 @@
+from __future__ import division
+
 import gevent
 import gevent.monkey
 
@@ -10,19 +12,17 @@ import json
 import random
 import ws4py.client
 
-from player import Player
-from game_map import Map
+from game_state import GameState
 import util
 from task_loop import TaskLoop
+from player import Player
+import agent
 
-global_map = Map()
-players = {}
 thisPlayer_name = None
 
+current_state = GameState()
 
-def dump_players():
-    for player_id, player in players.items():
-        print(player)
+agent = agent.RandomAgent()
 
 
 def handle_messages(event, data):
@@ -32,18 +32,20 @@ def handle_messages(event, data):
 
     # General events
     if event == 'playerid':
-        player_id = Player.thisPlayer_id = data['playerid']
+        Player.thisPlayer_id = data['playerid']
         print('My player id is %s' % Player.thisPlayer_id)
-        players[player_id] = Player(Player.thisPlayer_id, thisPlayer_name)
+        current_state.add_player(Player.thisPlayer_id, thisPlayer_name)
 
     elif event == 'map_initial':
-        global_map.setGrids(data['grids'])
+        current_state.game_map.setGrids(data['grids'])
 
     elif event == 'game_started':
         print('Game started')
 
+        current_state.game_started = True
+
         def __internal():
-            for player_id, player in players.items():
+            for player_id, player in current_state.players.items():
                 player.setPreparing()
 
         if data['already_started']:
@@ -53,61 +55,65 @@ def handle_messages(event, data):
 
     elif event == 'player_list':
         playersList = data['list']
-        for player in playersList:
-            player_id = player['playerid']
+        for playerObj in playersList:
+            player_id = playerObj['playerid']
 
             # Create the player if not exist
-            if player_id not in players:
-                players[player_id] = Player(player_id, player['name'])
+            if player_id not in current_state.players:
+                current_state.add_player(player_id, playerObj['name'])
 
             # Update info
-            player = players[player_id]
-            player.setCoord(player['x'], player['y'])
-            player.updateStatus(player['dead'], player['disconnected'])
+            player = current_state.players[player_id]
+            player.setCoord(playerObj['x'], playerObj['y'])
+            player.updateStatus(playerObj['dead'], playerObj['disconnected'])
         print('Receive players')
-        dump_players()
+        current_state.dump_players()
 
     elif event == 'pos_initial':
-        players[Player.thisPlayer_id].setPos(data['pos'])
+        current_state.me().setPos(data['pos'])
 
     elif event == 'player_position':
         playerid = data['playerid']
-        players[playerid].setCoord(data['x'], data['y'])
+        current_state.players[playerid].setCoord(data['x'], data['y'])
 
     elif event == 'player_offline':
         playerid = data['playerid']
-        players.pop(playerid, None)
+        current_state.players.pop(playerid, None)
         print('Player %s is offline\nPlayers: ' % playerid)
-        dump_players()
+        current_state.dump_players()
 
     # bomb events
     elif event == 'bomb_put':
-        global_map.bombPut(util.gridToPos(data['x'], data['y']))
+        current_state.game_map.bombPut(util.gridToPos(data['x'], data['y']))
 
     elif event == 'grid_bombed':
-        global_map.gridBombed(util.gridToPos(data['x'], data['y']))
+        current_state.game_map.gridBombed(util.gridToPos(data['x'], data['y']))
 
     elif event == 'wall_vanish':
-        global_map.wallBombed(util.gridToPos(data['x'], data['y']))
+        current_state.game_map.wallBombed(util.gridToPos(data['x'], data['y']))
 
     elif event == 'player_bombed':
-        players[data['playerid']].bombed()
+        player_id = str(data['playerid'])
+        current_state.players[player_id].bombed()
 
     # tool events
     elif event == 'tool_appeared':
-        global_map.toolAppeared(data['grid'], data['tooltype'])
+        current_state.game_map.toolAppeared(data['grid'], data['tooltype'])
 
     elif event == 'tool_disappeared':
         eater = data['eater']
         tooltype = data['tooltype']
         pos = data['glogrid']
-        global_map.toolDisappeared(eater=eater, tooltype=tooltype, pos=pos)
+        current_state.game_map.toolDisappeared(eater, tooltype, pos)
         if eater != 'bomb':
-            players[eater].toolapply(tooltype)
+            current_state.players[eater].toolapply(tooltype)
 
     else:
         print('Unknown data')
         print(data)
+
+    if current_state.game_started:
+        util.loop.add_task(agent.once, current_state)
 
 
 class WebSocketHandler(ws4py.client.WebSocketBaseClient):
@@ -149,18 +155,28 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
     def closed(self, code, reason=None):
         print("Closed down, code = %d, reason = %s" % (code, reason))
 
+    def packet_consumer(self):
+        while True:
+            gevent.sleep(1/60)
+            obj = util.packet_queue.get()
+            if not obj:
+                break
+            self.sendJson(obj)
+
 
 def main():
-    util.loop = TaskLoop()
-
     try:
         addr = 'ws://localhost:3000/'
         ws = WebSocketHandler(addr, protocols=['game-protocol'])
         ws.connect()
         # ws.run_forever()
-        gevent.joinall([ws._th, gevent.spawn(util.loop.run)])
+        greenlets = []
+        greenlets.append(ws._th)
+        greenlets.append(gevent.spawn(util.loop.run))
+        greenlets.append(gevent.spawn(ws.packet_consumer))
+        gevent.joinall(greenlets)
     except KeyboardInterrupt:
-        util.loop.running = False
+        util.mark_finished()
         print("Exiting...")
         ws.close()
 

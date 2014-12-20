@@ -18,7 +18,7 @@ class Map(object):
             if grid.grid_type == 'tool':
                 grid.tool = remote_grid['tool']
                 toolname = util.tools_map[grid.tool]
-                print('Initial tool %s at %s' % toolname, util.posToGridStr(i))
+                print('Initial tool %s at %s' % (toolname, util.gridStr(i)))
         self.dumpGrids()
 
     def toolAppeared(self, pos, tooltype):
@@ -44,18 +44,43 @@ class Map(object):
         self.dumpGrids()
 
     def bombPut(self, pos):
-        print('Bomb put at %s' % util.posToGridStr(pos))
+        print('Bomb put at %s' % util.gridStr(pos))
         self.grids[pos].grid_type = 'bomb'
         self.dumpGrids()
 
     def gridBombed(self, pos):
-        print('Grid at %s bombed' % util.posToGridStr(pos))
+        print('Grid at %s bombed' % util.gridStr(pos))
         self.grids[pos].grid_type = 'empty'
         self.dumpGrids()
 
     def wallBombed(self, pos):
-        print('Wall at %s bombed' % util.posToGridStr(pos))
+        print('Wall at %s bombed' % util.gridStr(pos))
         # Grid settings already done in gridBombed()
+
+    def near(self, x, y, half_side):
+        corners = [
+            (-half_side, -half_side),
+            (0, -half_side),
+            (+half_side, -half_side),
+            (-half_side, 0),
+            (+half_side, 0),
+            (-half_side, +half_side),
+            (0, +half_side),
+            (+half_side, +half_side)
+        ]
+        for i in range(0, len(corners)):
+            newX = x + corners[i][0]
+            newY = y + corners[i][1]
+            if not self.coordInMap(newX, newY):
+                return True
+            grid_type = self.grids[util.coordToPos(newX, newY)].grid_type
+            if grid_type != 'empty' and grid_type != 'tool':
+                return True
+        return False
+
+    def coordInMap(self, x, y):
+        return ((x >= 0 and x < util.map_pixelwidth) and
+                (y >= 0 and y < util.map_pixelwidth))
 
     def dumpGrids(self):
 
@@ -72,7 +97,7 @@ class Map(object):
 
         table = texttable.Texttable()
         table.add_rows(util.linearGridToMap(gridStrings))
-        print(table.draw())
+        # print(table.draw())
 
     def gridStrings(self):
         return [str(self.grids[pos]) for pos in util.grid_gen]

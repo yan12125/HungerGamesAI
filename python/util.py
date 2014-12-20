@@ -1,5 +1,7 @@
 import math
 import grid
+from task_loop import TaskLoop
+from compat import queue
 
 tools_map = {
     1: "speed_up",
@@ -13,11 +15,14 @@ tools_map = {
 map_dimension = 13
 map_gen = range(0, map_dimension)
 grid_dimension = 60
+map_pixelwidth = map_dimension * grid_dimension
 grid_count = map_dimension * map_dimension
 grid_gen = range(0, grid_count)
 empty_linear_grid = [grid.Grid() for i in grid_gen]
 
-loop = None  # will be a TaskLoop object
+loop = TaskLoop()
+
+packet_queue = queue.Queue()
 
 
 def posToGrid(pos):
@@ -38,10 +43,27 @@ def coordToGrid(x, y):
     """
     Transform coordinate (x, y) to (gridX, gridY)
     """
-    return (math.floor(x / grid_dimension), math.floor(y / grid_dimension))
+    # Note: math.floor returns floats in python 2
+    gridX = int(math.floor(x / grid_dimension))
+    gridY = int(math.floor(y / grid_dimension))
+    return (gridX, gridY)
 
 
-def posToGridStr(pos):
+def coordToPos(x, y):
+    """
+    Transform coordinate (x, y) to linear position
+    """
+    return gridToPos(*coordToGrid(x, y))
+
+
+def coordStr(x, y):
+    """
+    Transform coordinate (x, y) to string representation
+    """
+    return "(%d, %d)" % (x, y)
+
+
+def gridStr(pos):
     """
     Transform pos to string "(gridX, gridY)"
     """
@@ -58,3 +80,8 @@ def linearGridToMap(linearGrid):
 
 def empty_map():
     return linearGridToMap(empty_linear_grid)
+
+
+def mark_finished():
+    loop.add_finished_task()
+    packet_queue.put(None)
