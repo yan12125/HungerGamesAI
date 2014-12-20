@@ -189,6 +189,24 @@ var penetrate = false;
 
 /** [ BEGINNING ] section: position calculation  maintained by ping */
 
+function near(X, Y, halfSide) {
+    var check = [];
+    check[0] = gridCalc(X - halfSide, Y - halfSide);
+    check[1] = gridCalc(X, Y - halfSide);
+    check[2] = gridCalc(X + halfSide, Y - halfSide);
+    check[3] = gridCalc(X - halfSide, Y);
+    check[4] = gridCalc(X + halfSide, Y);
+    check[5] = gridCalc(X - halfSide, Y + halfSide);
+    check[6] = gridCalc(X, Y + halfSide);
+    check[7] = gridCalc(X + halfSide, Y + halfSide);
+    for(var i=0;i<8;i++) {
+        if(!map[ check[i] ].empty) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function recalculatePosition() {
     var oldX = thisPlayer.getX();
     var oldY = thisPlayer.getY();
@@ -308,6 +326,16 @@ function gridCalc(x, y) {
 /** [    END    ] section: position calculation  maintained by ping */
 
 /** [ BEGINNING ] section: repetion at 60Hz ( utility )*/
+
+function myBlockColor(nowpos) {
+    for (var i = 0; i < 169; i += 1) {
+        if (i === nowpos) {
+            gridObj.classList.add('active');
+        } else {
+            gridObj.classList.remove('active');
+        }
+    }
+}
 
 function main() {
     if (thisPlayer.dead) clearInterval(mainRep);
