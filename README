@@ -1,0 +1,21 @@
+IMPORTANT NOTE: Only tested on Arch Linux
+
+Install required packages
+
+    pacman -S nodejs python2-gevent python2-ws4py
+    cd server/
+    npm install
+
+How to run server?
+
+    cd server/
+    node main.js
+
+How to run Javascript client?
+
+Open your favorite browser and navigate to http://localhost:3000/. Currently only Firefox tested.
+
+How to run python client?
+
+    cd python/
+    python2 main.py
