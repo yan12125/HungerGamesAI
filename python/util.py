@@ -3,6 +3,8 @@ import grid
 from task_loop import TaskLoop
 from compat import queue
 
+BASE_INTERVAL = 1/60
+
 tools_map = {
     1: "speed_up",
     2: "speed_change",

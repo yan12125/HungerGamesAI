@@ -4,7 +4,8 @@ from direction import Direction
 
 
 class RandomAgent(object):
-    lastMove = Direction.STOP
+    def __init__(self):
+        self.lastMove = Direction.STOP
 
     def once(self, state):
         if not util.packet_queue.empty():

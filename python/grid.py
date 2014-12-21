@@ -2,8 +2,9 @@ import util
 
 
 class Grid(object):
-    grid_type = None
-    tool = None
+    def __init__(self):
+        self.grid_type = None
+        self.tool = None
 
     def __str__(self):
         if self.grid_type == 'tool':

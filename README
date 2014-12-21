@@ -1,8 +1,14 @@
-IMPORTANT NOTE: Only tested on Arch Linux
+IMPORTANT NOTE: Only tested on Arch Linux and Ubuntu 14.10
 
-Install required packages
+Install required packages for Arch Linux
 
-    pacman -S nodejs python2-gevent python2-ws4py
+    pacman -S nodejs python2-gevent python2-ws4py python2-texttable
+    cd server/
+    npm install
+
+Install required packages for Ubuntu 14.10
+
+    apt-get install nodejs python-gevent python-ws4py python-texttable
     cd server/
     npm install
 
@@ -13,9 +19,22 @@ How to run server?
 
 How to run Javascript client?
 
-Open your favorite browser and navigate to http://localhost:3000/. Currently only Firefox tested.
+Open your favorite browser and navigate to http://localhost:3000/. Currently only Firefox and Chrome tested.
 
 How to run python client?
 
     cd python/
     python2 main.py
+
+Want to using python 3 (on Arch Linux)?
+
+ws4py is easy:
+    pacman -S python-ws4py
+
+However, gevent and texttable are tricky
+For gevent, official version does not support python 3. @fantix's fork is available.
+
+    sudo pip install -U git+https://github.com/fantix/gevent
+
+For texttable, we need the git version because the latest official release does not support python 3 yet
+    sudo pip install -U git+https://github.com/bufordtaylor/python-texttable

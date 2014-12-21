@@ -2,12 +2,13 @@ import util
 import texttable
 import grid
 
+NEAR_ERR = 25  # half of the player width
+
 
 class Map(object):
-    grids = [grid.Grid() for i in util.grid_gen]  # indexed by pos
 
     def __init__(self):
-        pass
+        self.grids = [grid.Grid() for i in util.grid_gen]  # indexed by pos
 
     def setGrids(self, remote_grids):
         for i in util.grid_gen:
@@ -43,38 +44,50 @@ class Map(object):
 
         self.dumpGrids()
 
-    def bombPut(self, pos):
+    def bombPut(self, gridX, gridY):
+        pos = util.gridToPos(gridX, gridY)
         print('Bomb put at %s' % util.gridStr(pos))
         self.grids[pos].grid_type = 'bomb'
         self.dumpGrids()
 
-    def gridBombed(self, pos):
+    def gridBombed(self, gridX, gridY):
+        pos = util.gridToPos(gridX, gridY)
         print('Grid at %s bombed' % util.gridStr(pos))
         self.grids[pos].grid_type = 'empty'
         self.dumpGrids()
 
-    def wallBombed(self, pos):
+    def wallBombed(self, gridX, gridY):
+        pos = util.gridToPos(gridX, gridY)
         print('Wall at %s bombed' % util.gridStr(pos))
         # Grid settings already done in gridBombed()
 
-    def near(self, x, y, half_side):
+    def eight_corners(self, x, y, half_side):
         corners = [
-            (-half_side, -half_side),
             (0, -half_side),
-            (+half_side, -half_side),
+            (0, +half_side),
             (-half_side, 0),
             (+half_side, 0),
+            (-half_side, -half_side),
+            (+half_side, -half_side),
             (-half_side, +half_side),
-            (0, +half_side),
             (+half_side, +half_side)
         ]
-        for i in range(0, len(corners)):
-            newX = x + corners[i][0]
-            newY = y + corners[i][1]
+        return [(x+distance[0], y+distance[1]) for distance in corners]
+
+    def near(self, x, y, half_side=NEAR_ERR, canPassBomb=False):
+        for newX, newY in self.eight_corners(x, y, half_side):
             if not self.coordInMap(newX, newY):
                 return True
             grid_type = self.grids[util.coordToPos(newX, newY)].grid_type
+            if grid_type == 'bomb' and canPassBomb:
+                continue
             if grid_type != 'empty' and grid_type != 'tool':
+                return True
+        return False
+
+    def nearPos(self, x, y, pos, half_side=NEAR_ERR):
+        for newX, newY in self.eight_corners(x, y, half_side):
+            if util.coordToPos(newX, newY) == pos:
                 return True
         return False
 

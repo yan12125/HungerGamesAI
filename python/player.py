@@ -1,31 +1,31 @@
 import util
 import random
-from task_loop import TaskLoop
 
 
 class Player(object):
     # Static
     thisPlayer_id = None
 
-    player_id = None
-    x = -1
-    y = -1
-    dead = False
-    disconnected = False
-    name = None
-
-    # Tools related parameters
-    preparing = False
-    speed = 5  # -1 indicated unknown
-    bombPower = 1
-    bombLimit = 5
-    bombCount = 0
-    penetrate = False  # whether able to bypass walls
-    god_mod = False  # not killed by bombs
-
     def __init__(self, p_id, p_name):
         self.player_id = p_id
         self.name = p_name
+
+        self.x = -1
+        self.y = -1
+        self.dead = False
+        self.disconnected = False
+
+        # Tools related parameters
+        self.preparing = False
+        self.speed = 5  # -1 indicated unknown
+        self.bombPower = 1
+        self.bombLimit = 5
+        self.bombCount = 0
+        self.penetrate = False  # whether able to bypass walls
+        self.god_mod = False  # not killed by bombs
+
+        # Auxiliary attributes
+        self.onBomb = False  # True if standing on a newly put bomb
 
     def isMe(self):
         return self.player_id == Player.thisPlayer_id
@@ -34,11 +34,11 @@ class Player(object):
         self.preparing = True
         print('Player %s is in preparing mode' % self.player_id)
 
-        def __internal(player):
+        def __internal_exitPreparing(player):
             player.preparing = False
             print('Player %s exits preparing mode' % player.player_id)
 
-        util.loop.add_task(TaskLoop.delay, 3, __internal, self)
+        util.loop.add_timed_task(3, __internal_exitPreparing, self)
 
     def setPos(self, p_pos):
         """
@@ -78,7 +78,7 @@ class Player(object):
         elif tooltype == 5:
             self.penetrate = True
             if self.isMe():
-                util.loop.add_task(TaskLoop.delay, 15, Player.dropUfo, self)
+                util.loop.add_timed_task(15, Player.dropUfo, self)
         elif tooltype == 6:
             pass
 
