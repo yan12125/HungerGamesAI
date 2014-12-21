@@ -7,13 +7,18 @@ class RandomAgent(object):
     lastMove = Direction.STOP
 
     def once(self, state):
+        if not util.packet_queue.empty():
+            return
+
         player = state.me()
 
         move = self.lastMove
 
         if move == Direction.STOP or not state.moveValidForMe(move):
             validMoves = state.validMovesForMe()
-            validMoves.remove(Direction.STOP)
+            if Direction.STOP in validMoves:
+                # Not always true. Eg., on a newly put bomb
+                validMoves.remove(Direction.STOP)
             self.lastMove = move = random.choice(validMoves)
 
         if move == Direction.STOP:

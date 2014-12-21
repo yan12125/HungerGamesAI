@@ -127,7 +127,10 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
         print('My name is %s' % thisPlayer_name)
 
     def sendJson(self, data):
-        self.send(json.dumps(data))
+        if self.stream:
+            self.send(json.dumps(data))
+        else:
+            print("Error: stream closed")
 
     def opened(self):
         self.sendJson({

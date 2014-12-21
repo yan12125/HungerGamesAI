@@ -49,9 +49,6 @@ class Player(object):
         self.setCoord(coord[0] * 60 + 30, coord[1] * 60 + 30)
 
     def setCoord(self, _x, _y):
-        if self.isMe() and (self.x, self.y) != (-1, -1):
-            # FIXME race condition between server and client
-            return
         self.x = _x
         self.y = _y
 
