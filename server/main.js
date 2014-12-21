@@ -110,9 +110,11 @@ var grids = new Array();
 iniMap();
 
 var wsConnections = [];
-wsConnections.getConnectionById = function (uuid) {
-  for (var i = 0, len = this.length; i < len; i += 1)
-    if (this[i] && this[i].playerInfo.playerid === uuid) return this[i];
+getConnectionById = function (uuid) {
+  for (var i = 0, len = wsConnections.length; i < len; i += 1)
+    if (wsConnections[i] && wsConnections[i].playerInfo.playerid === uuid) {
+        return wsConnections[i];
+    }
 };
 
 process.on('exit', function (code) {
@@ -269,7 +271,7 @@ function sendObjToAllClient(obj) {
 function disconnectAll(desc) {
   for(var i = 0;i<wsConnections.length;i++) {
     if(wsConnections[i] && wsConnections[i].connected) {
-      wsConnections[i].drop(1000, desc);
+      wsConnections[i].close(1000, desc);
     }
   }
 }
@@ -303,7 +305,7 @@ function randIniPos(allowOnTool) {
         var idx = (test+i)%169;
         var grid_type = grids[idx].type;
         if(grid_type === 'empty') {
-          return test+i;
+          return idx;
         } else if (grid_type === 'tool') {
           toolList[idx] = true;
         }
@@ -402,7 +404,7 @@ function toolappear() {
 
 function player_bombed(playerid) {
   console.log('Player ' + playerid + ' was bombed');
-  var conn = wsConnections.getConnectionById(playerid);
+  var conn = getConnectionById(playerid);
 
   if (conn.playerInfo.dead || conn.playerInfo.disconnected) {
     return;
@@ -412,7 +414,7 @@ function player_bombed(playerid) {
     playerid: playerid
   });
   conn.playerInfo.dead = true;
-  conn.drop(1000, 'dead');
+  conn.close(1000, 'dead');
 }
 
 function putBomb(playerid, x, y, bombingPower) {
@@ -422,7 +424,7 @@ function putBomb(playerid, x, y, bombingPower) {
   if (grids[pos].type !== 'empty') {
     return;
   }
-  //console.log('Player ' + wsConnections.getConnectionById(playerid).playerInfo.name + ' put a bomb at (' + x + ', ' + y + ')\n');
+  //console.log('Player ' + getConnectionById(playerid).playerInfo.name + ' put a bomb at (' + x + ', ' + y + ')\n');
   grids[pos].empty = false; // 炸彈不能過
   grids[pos].type = 'bomb';
   grids[pos].bombingPower = bombingPower;

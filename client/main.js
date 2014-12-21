@@ -189,8 +189,8 @@ var penetrate = false;
 
 /** [ BEGINNING ] section: position calculation  maintained by ping */
 
-function near(X, Y, halfSide) {
-    var check = [];
+function eightCorners(X, Y, halfSide) {
+    var check = new Array(8);
     check[0] = gridCalc(X - halfSide, Y - halfSide);
     check[1] = gridCalc(X, Y - halfSide);
     check[2] = gridCalc(X + halfSide, Y - halfSide);
@@ -199,8 +199,23 @@ function near(X, Y, halfSide) {
     check[5] = gridCalc(X - halfSide, Y + halfSide);
     check[6] = gridCalc(X, Y + halfSide);
     check[7] = gridCalc(X + halfSide, Y + halfSide);
+    return check;
+}
+
+function near(X, Y, halfSide) {
+    var check = eightCorners(X, Y, halfSide);
     for(var i=0;i<8;i++) {
         if(!map[ check[i] ].empty) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function nearPos(X, Y, halfSide, pos) {
+    var check = eightCorners(X, Y, halfSide);
+    for(var i = 0; i < 8; i++) {
+        if(check[i] == pos) {
             return true;
         }
     }
@@ -507,7 +522,7 @@ function webSocketInit() {
             map[pos].type = 'bomb';
             map[pos].empty=true;
             var chkleave = setInterval(function(){
-                if(gridCalc(thisPlayer.getX()+25,thisPlayer.getY()+25)!==pos&&gridCalc(thisPlayer.getX()+25,thisPlayer.getY()-25)!==pos&&gridCalc(thisPlayer.getX()-25,thisPlayer.getY()+25)!==pos&&gridCalc(thisPlayer.getX()-25,thisPlayer.getY()-25)!==pos&&gridCalc(thisPlayer.getX()-25,thisPlayer.getY())!==pos&&gridCalc(thisPlayer.getX()+25,thisPlayer.getY())!==pos&&gridCalc(thisPlayer.getX(),thisPlayer.getY()-25)!==pos&&gridCalc(thisPlayer.getX(),thisPlayer.getY()+25)!==pos){
+                if(!nearPos(thisPlayer.getX(), thisPlayer.getY(), 25, pos)) {
                     map[pos].empty=false;
                     clearInterval(chkleave);
                 }
