@@ -30,6 +30,10 @@ class Player(object):
     def isMe(self):
         return self.player_id == Player.thisPlayer_id
 
+    @staticmethod
+    def isMe2(player_id):
+        return Player.thisPlayer_id == player_id
+
     def setPreparing(self):
         self.preparing = True
         print('Player %s is in preparing mode' % self.player_id)
@@ -76,15 +80,10 @@ class Player(object):
                 self.bombPower += 1
             pass
         elif tooltype == 5:
+            print("Player %s is penetrate" % self.player_id)
             self.penetrate = True
-            if self.isMe():
-                util.loop.add_timed_task(15, Player.dropUfo, self)
         elif tooltype == 6:
             pass
-
-    def dropUfo(self):
-        # TODO Check still in wall grids or not
-        pass
 
     def bombed(self):
         if not self.preparing:

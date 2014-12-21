@@ -14,18 +14,18 @@ class GameState(object):
         self.players = {}
 
     def start_game(self, already_started):
-        print('Game started')
-
-        self.game_started = True
-
-        def __internal_preparing():
+        def __internal_preparing(state):
+            print('Game started')
+            state.game_started = True
             for player_id, player in self.players.items():
                 player.setPreparing()
 
         if already_started:
-            __internal_preparing()
+            print('Game started immediately')
+            __internal_preparing(self)
         else:
-            util.loop.add_timed_task(3, __internal_preparing)
+            print('Game will start in 3 seconds')
+            util.loop.add_timed_task(3, __internal_preparing, self)
 
     def set_players(self, player_list):
         print('Receive players')
@@ -65,18 +65,25 @@ class GameState(object):
             print("I exit a bomb")
             player.onBomb = False
 
+    def checkLeaveWall(self):
+        player = self.me()
+        if self.game_map.near(player.x, player.y, passBomb=player.onBomb):
+            print("Still in some wall")
+            util.loop.add_timed_task(util.BASE_INTERVAL, self.checkLeaveWall)
+        else:
+            print("Dropping UFO")
+            player.penetrate = False
+            util.packet_queue.put({
+                'event': 'ufo_removal',
+                'playerid': Player.thisPlayer_id
+            })
+
     def moveValidForPlayer(self, player_id, move):
-        player = self.players[player_id]
+        p = self.players[player_id]
         move_distance = Direction.distances[move]
-        newX = player.x + move_distance[0] * player.speed
-        newY = player.y + move_distance[1] * player.speed
-        if not self.game_map.coordInMap(newX, newY):
-            return False
-
-        if player.penetrate:
-            return True
-
-        return not self.game_map.near(newX, newY, canPassBomb=player.onBomb)
+        newX = p.x + move_distance[0] * p.speed
+        newY = p.y + move_distance[1] * p.speed
+        return not self.game_map.near(newX, newY, p.onBomb, p.penetrate)
 
     def moveValidForMe(self, move):
         return self.moveValidForPlayer(Player.thisPlayer_id, move)

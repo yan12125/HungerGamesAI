@@ -74,12 +74,14 @@ class Map(object):
         ]
         return [(x+distance[0], y+distance[1]) for distance in corners]
 
-    def near(self, x, y, half_side=NEAR_ERR, canPassBomb=False):
+    def near(self, x, y, passBomb=False, passWall=False, half_side=NEAR_ERR):
         for newX, newY in self.eight_corners(x, y, half_side):
             if not self.coordInMap(newX, newY):
                 return True
             grid_type = self.grids[util.coordToPos(newX, newY)].grid_type
-            if grid_type == 'bomb' and canPassBomb:
+            if grid_type == 'bomb' and passBomb:
+                continue
+            if (grid_type == 'nvwall' or grid_type == 'vwall') and passWall:
                 continue
             if grid_type != 'empty' and grid_type != 'tool':
                 return True

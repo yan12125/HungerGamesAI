@@ -65,8 +65,19 @@ def handle_messages(event, data):
         tooltype = data['tooltype']
         pos = data['glogrid']
         GameState.current.game_map.toolDisappeared(eater, tooltype, pos)
-        if eater != 'bomb':
-            GameState.current.players[eater].toolapply(tooltype)
+
+        if eater == 'bomb':
+            return
+
+        notInPenetrate = not GameState.current.me().penetrate
+        GameState.current.players[eater].toolapply(tooltype)
+        if Player.isMe2(eater) and tooltype == 5 and notInPenetrate:  # ufo
+            util.loop.add_timed_task(15, GameState.current.checkLeaveWall)
+
+    elif event == 'ufo_removal':
+        player_id = str(data['playerid'])
+        print("Player %s drops UFO" % player_id)
+        GameState.current.players[player_id].penetrate = False
 
     else:
         print('Unknown data')
