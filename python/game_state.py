@@ -1,6 +1,7 @@
 from game_map import Map
 from player import Player
 from direction import Direction
+from grid import Grid
 import util
 
 
@@ -57,6 +58,11 @@ class GameState(object):
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself
         player = self.me()
+        if self.game_map.grids[pos].grid_type != Grid.BOMB:
+            # XXX I don't know why bombs vanished
+            print('Bomb at %s vanished' % util.gridStr(pos))
+            return
+
         if self.game_map.nearPos(player.x, player.y, pos):
             print("I am on a bomb")
             print((player.x, player.y))
