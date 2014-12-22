@@ -11,8 +11,6 @@ class RandomAgent(object):
         if not util.packet_queue.empty():
             return
 
-        player = state.me()
-
         move = self.lastMove
 
         if move == Direction.STOP or not state.moveValidForMe(move):
@@ -27,6 +25,7 @@ class RandomAgent(object):
 
         distance = Direction.distances[move]
 
+        player = state.me()
         player.x += distance[0] * player.speed
         player.y += distance[1] * player.speed
 

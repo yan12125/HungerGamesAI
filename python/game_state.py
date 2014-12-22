@@ -59,6 +59,8 @@ class GameState(object):
         player = self.me()
         if self.game_map.nearPos(player.x, player.y, pos):
             print("I am on a bomb")
+            print((player.x, player.y))
+            print(util.posToGrid(pos))
             player.onBomb = True
             util.loop.add_timed_task(util.BASE_INTERVAL, self.checkLeave, pos)
         else:
@@ -98,3 +100,33 @@ class GameState(object):
 
     def validMovesForMe(self):
         return self.validMovesForPlayer(Player.thisPlayer_id)
+
+    def moveGoodForPlayer(self, player_id, move):
+        if not self.moveValidForPlayer(player_id, move):
+            return False
+
+        player = self.players[player_id]
+        playerGrid = list(util.coordToGrid(player.x, player.y))
+
+        distance = Direction.distances[move]
+        playerGrid[0] += distance[0]
+        playerGrid[1] += distance[1]
+
+        if not Map.gridInMap(*playerGrid):
+            return False
+
+        grid = self.game_map.grids[util.gridToPos(*playerGrid)]
+        return grid.canPass()
+
+    def moveGoodForMe(self, move):
+        return self.moveGoodForPlayer(Player.thisPlayer_id, move)
+
+    def goodMovesForPlayer(self, player_id):
+        ret = []
+        for move in Direction.ALL:
+            if self.moveGoodForPlayer(player_id, move):
+                ret.append(move)
+        return ret
+
+    def goodMovesForMe(self):
+        return self.goodMovesForPlayer(Player.thisPlayer_id)

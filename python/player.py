@@ -1,5 +1,6 @@
 import util
 import random
+from direction import Direction
 
 
 class Player(object):
@@ -19,7 +20,7 @@ class Player(object):
         self.preparing = False
         self.speed = 5  # -1 indicated unknown
         self.bombPower = 1
-        self.bombLimit = 5
+        self.bombLimit = 1
         self.bombCount = 0
         self.penetrate = False  # whether able to bypass walls
         self.god_mod = False  # not killed by bombs
@@ -85,12 +86,23 @@ class Player(object):
         elif tooltype == 6:
             pass
 
+    def putBomb(self):
+        if self.isMe():
+            return  # state is handled in agents
+        self.bombCount += 1
+
     def bombed(self):
         if not self.preparing:
             self.dead = True
         if self.isMe():
             util.mark_finished()
         # Connection is closed by the server
+
+    def newCoord(self, move):
+        distance = Direction.distances[move]
+        newX = self.x + distance[0] * self.speed
+        newY = self.y + distance[1] * self.speed
+        return (newX, newY)
 
     def __str__(self):
         ret = 'Player %s "%s"' % (self.player_id, self.name)

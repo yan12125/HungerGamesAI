@@ -10,6 +10,8 @@ thisPlayer_name = None
 
 
 def handle_messages(event, data):
+    state = GameState.current
+
     if event != 'player_position':
         print('[event] %s' % event)
 
@@ -17,67 +19,72 @@ def handle_messages(event, data):
     if event == 'playerid':
         Player.thisPlayer_id = data['playerid']
         print('My player id is %s' % Player.thisPlayer_id)
-        GameState.current.add_player(Player.thisPlayer_id, thisPlayer_name)
+        state.add_player(Player.thisPlayer_id, thisPlayer_name)
 
     elif event == 'map_initial':
-        GameState.current.game_map.setGrids(data['grids'])
+        state.game_map.setGrids(data['grids'])
 
     elif event == 'game_started':
-        GameState.current.start_game(data['already_started'])
+        state.start_game(data['already_started'])
 
     elif event == 'player_list':
-        GameState.current.set_players(data['list'])
+        state.set_players(data['list'])
 
     elif event == 'pos_initial':
-        GameState.current.me().setPos(data['pos'])
+        state.me().setPos(data['pos'])
 
     elif event == 'player_position':
         playerid = data['playerid']
-        GameState.current.players[playerid].setCoord(data['x'], data['y'])
+        state.players[playerid].setCoord(data['x'], data['y'])
 
     elif event == 'player_offline':
         playerid = data['playerid']
-        GameState.current.players.pop(playerid, None)
+        state.players.pop(playerid, None)
         print('Player %s is offline\nPlayers: ' % playerid)
-        GameState.current.dump_players()
+        state.dump_players()
 
     # bomb events
     elif event == 'bomb_put':
-        GameState.current.game_map.bombPut(data['x'], data['y'])
-        GameState.current.checkLeave(util.gridToPos(data['x'], data['y']))
+        state.game_map.bombPut(data['x'], data['y'], data['power'])
+        murdererid = str(data['murdererid'])
+        state.players[murdererid].putBomb()
+        state.checkLeave(util.gridToPos(data['x'], data['y']))
 
     elif event == 'grid_bombed':
-        GameState.current.game_map.gridBombed(data['x'], data['y'])
+        state.game_map.gridBombed(data['x'], data['y'])
 
     elif event == 'wall_vanish':
-        GameState.current.game_map.wallBombed(data['x'], data['y'])
+        state.game_map.wallBombed(data['x'], data['y'])
 
     elif event == 'player_bombed':
         player_id = str(data['playerid'])
-        GameState.current.players[player_id].bombed()
+        state.players[player_id].bombed()
+    elif event == 'bombing':
+        murderer_id = str(data['murderer'])
+        state.players[murderer_id].bombCount -= 1
 
     # tool events
     elif event == 'tool_appeared':
-        GameState.current.game_map.toolAppeared(data['grid'], data['tooltype'])
+        state.game_map.toolAppeared(data['grid'], data['tooltype'])
 
     elif event == 'tool_disappeared':
         eater = data['eater']
         tooltype = data['tooltype']
         pos = data['glogrid']
-        GameState.current.game_map.toolDisappeared(eater, tooltype, pos)
+        state.game_map.toolDisappeared(eater, tooltype, pos)
 
         if eater == 'bomb':
             return
 
-        notInPenetrate = not GameState.current.me().penetrate
-        GameState.current.players[eater].toolapply(tooltype)
+        notInPenetrate = not state.me().penetrate
+        state.players[eater].toolapply(tooltype)
         if Player.isMe2(eater) and tooltype == 5 and notInPenetrate:  # ufo
-            util.loop.add_timed_task(15, GameState.current.checkLeaveWall)
+            util.loop.add_timed_task(15, state.checkLeaveWall)
 
     elif event == 'ufo_removal':
         player_id = str(data['playerid'])
         print("Player %s drops UFO" % player_id)
-        GameState.current.players[player_id].penetrate = False
+        state.players[player_id].penetrate = False
 
     else:
         print('Unknown data')

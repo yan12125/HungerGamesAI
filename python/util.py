@@ -51,11 +51,24 @@ def coordToGrid(x, y):
     return (gridX, gridY)
 
 
+def gridToCoord(gridX, gridY):
+    """
+    Transform (gridX, gridY) to coordinates
+    """
+    x = grid_dimension * gridX + grid_dimension / 2
+    y = grid_dimension * gridY + grid_dimension / 2
+    return (x, y)
+
+
 def coordToPos(x, y):
     """
     Transform coordinate (x, y) to linear position
     """
     return gridToPos(*coordToGrid(x, y))
+
+
+def posToCoord(pos):
+    return gridToCoord(*posToGrid(pos))
 
 
 def coordStr(x, y):

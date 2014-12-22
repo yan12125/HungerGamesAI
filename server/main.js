@@ -424,15 +424,17 @@ function putBomb(playerid, x, y, bombingPower) {
   if (grids[pos].type !== 'empty') {
     return;
   }
-  //console.log('Player ' + getConnectionById(playerid).playerInfo.name + ' put a bomb at (' + x + ', ' + y + ')\n');
+  console.log('Player ' + playerid + ' put a bomb at (' + x + ', ' + y + ')');
   grids[pos].empty = false; // 炸彈不能過
   grids[pos].type = 'bomb';
   grids[pos].bombingPower = bombingPower;
+  grids[pos].murderer = playerid;
   sendObjToAllClient({
     event: 'bomb_put',
     x: x,
     y: y,
-    murdererid: playerid
+    murdererid: playerid, 
+    power: bombingPower
   });
   setTimeout(function () {
     bombing(x, y);
@@ -463,6 +465,14 @@ function bombing(bombX, bombY, range, dir) {
   }
   if(original) {
     range = grid.bombingPower;
+    var obj = {
+        event: 'bombing', 
+        murderer: grid.murderer, 
+        x: bombX, 
+        y: bombY
+    };
+    console.log(obj)
+    sendObjToAllClient(obj);
   }
   var old_type = grid.type; // type is set to empty after bombing
   grid_bombed(bombX, bombY);

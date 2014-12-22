@@ -8,16 +8,20 @@ import gevent.monkey
 # http://stackoverflow.com/questions/8774958/keyerror-in-module-threading-after-a-successful-py-test-run
 gevent.monkey.patch_all()
 
+import compat
+compat.patch_all()
+
 import random
 
 from game_state import GameState
 from websocket_client import WebSocketHandler
 import util
-import agent
+# from agent import RandomAgent as Agent
+from bomber import BomberAgent as Agent
 
 GameState.current = GameState()
 
-current_agent = agent.RandomAgent()
+current_agent = Agent()
 
 
 def main():
