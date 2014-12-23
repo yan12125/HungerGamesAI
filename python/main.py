@@ -14,6 +14,7 @@ compat.patch_all()
 import sys
 import random
 import argparse
+import logging
 import importlib
 import traceback
 import inspect
@@ -54,8 +55,10 @@ def load_agent(name):
 
 
 def main():
+    logging.basicConfig(level=logging.DEBUG)
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('-a', dest='agentName', default='random')
+    parser.add_argument('-a', dest='agentName', default='idle')
     options = parser.parse_args()
     current_agent = load_agent(options.agentName)
 

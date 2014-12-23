@@ -1,3 +1,4 @@
+from __future__ import print_function
 import gevent
 import time
 from compat import queue
@@ -16,19 +17,21 @@ class TaskLoop(object):
         # print('-----------')
         for i in range(0, len(self.q.queue)):
             timeout, callback, args, kwargs = self.q.queue[i]
-            old_timeout = timeout
+            # old_timeout = timeout
             timeout -= (new_timestamp - self.last_timestamp)
-            if hasattr(callback, '__name__'):
-                cbName = callback.__name__
-            else:
-                cbName = callback
+            # if hasattr(callback, '__name__'):
+            #    cbName = callback.__name__
+            # else:
+            #    cbName = callback
             # print(old_timeout, timeout, cbName)
             if min_timeout > timeout:
                 min_timeout = timeout
             self.q.queue[i] = (timeout, callback, args, kwargs)
         self.last_timestamp = new_timestamp
 
-        gevent.sleep(min(util.BASE_INTERVAL, min_timeout))
+        sleep_time = max(0, min(util.BASE_INTERVAL, min_timeout))
+        # print(min_timeout)
+        gevent.sleep(sleep_time)
 
     def add_timed_task_impl(self, timeout, callback, *args, **kwargs):
         self.q.put((timeout, callback, args, kwargs))

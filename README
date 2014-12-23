@@ -24,7 +24,14 @@ Open your favorite browser and navigate to http://localhost:3000/. Currently onl
 How to run python client?
 
     cd python/
-    python2 main.py
+    python2 main.py -a [agent name]
+
+Agents are below the agents/ directory. See existing files as examples
+
+Existing agents:
+    idle: do nothing
+    drunken: go straight and turn when kicking walls or bombs
+    bomber: put bombs and avoid bombing as best as possible
 
 Want to using python 3 (on Arch Linux)?
 

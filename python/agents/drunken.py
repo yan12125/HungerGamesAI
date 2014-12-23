@@ -18,6 +18,9 @@ class DrunkenAgent(object):
             if Direction.STOP in validMoves:
                 # Not always true. Eg., on a newly put bomb
                 validMoves.remove(Direction.STOP)
+            if not validMoves:
+                print('Error: no valid moves')
+                return
             self.lastMove = move = random.choice(validMoves)
 
         if move == Direction.STOP:

@@ -1,3 +1,4 @@
+from __future__ import division
 import math
 import grid
 from task_loop import TaskLoop
