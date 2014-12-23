@@ -79,6 +79,15 @@ app.get('/start_game', function (req, res) {
   }
 });
 
+app.get('/report', function (req, res) {
+    var infos = [];
+    for(var i = 0; i < wsConnections.length; i++) {
+        var playerInfo = wsConnections[i].playerInfo;
+        infos.push(playerInfo);
+    }
+    res.send(JSON.stringify(infos));
+});
+
 app.listen(WEB_SERVER_PORT, function () {
   console.log('Web server starts listening port %d for %s',
     app.address().port, 'HTTP requests and WebSockets');

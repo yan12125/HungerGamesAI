@@ -22,6 +22,9 @@ class Map(object):
                 grid.tool = remote_grid['tool']
                 toolname = util.tools_map[grid.tool]
                 print('Initial tool %s at %s' % (toolname, util.gridStr(i)))
+            elif grid.grid_type == Grid.BOMB:
+                grid.bombPower = remote_grid['bombingPower']
+                print('Initial bomb at %s, power = %d' % (util.gridStr(i), grid.bombPower))
         self.dumpGrids()
 
     def gridIs(self, gridPos, grid_type):

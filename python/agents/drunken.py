@@ -3,7 +3,7 @@ import util
 from direction import Direction
 
 
-class RandomAgent(object):
+class DrunkenAgent(object):
     def __init__(self):
         self.lastMove = Direction.STOP
 
