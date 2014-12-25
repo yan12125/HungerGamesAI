@@ -69,7 +69,7 @@ def main():
     print('My name is %s' % myname)
 
     try:
-        addr = 'ws://localhost:3000/'
+        addr = 'ws://127.0.0.1:3000/'
         ws = WebSocketHandler(current_agent, myname, addr, ['game-protocol'])
         ws.connect()
         # ws.run_forever()
