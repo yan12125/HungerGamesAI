@@ -2,13 +2,13 @@ IMPORTANT NOTE: Only tested on Arch Linux and Ubuntu 14.10
 
 Install required packages for Arch Linux
 
-    pacman -S nodejs python2-gevent python2-ws4py python2-texttable
+    sudo pacman -S nodejs python2-gevent python2-ws4py python2-texttable
     cd server/
     npm install
 
 Install required packages for Ubuntu 14.10
 
-    apt-get install nodejs python-gevent python-ws4py python-texttable
+    sudo apt-get install nodejs python-gevent python-ws4py python-texttable
     cd server/
     npm install
 
@@ -41,7 +41,8 @@ ws4py is easy:
 However, gevent and texttable are tricky
 For gevent, official version does not support python 3. @fantix's fork is available.
 
-    sudo pip install -U git+https://github.com/fantix/gevent
+    sudo pacman -S cython
+    pip install --user --upgrade git+https://github.com/fantix/gevent
 
 For texttable, we need the git version because the latest official release does not support python 3 yet
-    sudo pip install -U git+https://github.com/bufordtaylor/python-texttable
+    pip install --user --upgrade git+https://github.com/bufordtaylor/python-texttable

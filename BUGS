@@ -1,0 +1,14 @@
+BUGS
+
+Important:
+Penetrate not working
+
+Not so important:
+"Connection reset by peer" or "Broken pipe" when drunken or bomber bombed
+
+TODO
+Important:
+Create an Agent class for wrapping all agents
+
+Not so important:
+Calculate other players' speed after randomized. Using consecutive coordinates

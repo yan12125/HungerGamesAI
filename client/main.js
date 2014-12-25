@@ -527,6 +527,11 @@ function webSocketInit() {
                     clearInterval(chkleave);
                 }
             },1000/60);
+        } else if (obj.event === 'bombing') {
+            var pos = obj.x + obj.y * 13;
+            map[pos].type = 'empty';
+            map[pos].empty = true;
+            grids[pos].classList.remove('bomb');
         } else if (obj.event === 'player_bombed') {
             if (obj.playerid === thisPlayer.id) {
                 thisPlayer.elm.style.opacity = 0.3;
@@ -596,11 +601,6 @@ function grid_bombed(x, y, status) {
     }
   } else {
     grids[pos].classList.remove('bombed');
-  }
-  if(map[pos].type == 'bomb') {
-    map[pos].type = 'empty';
-    map[pos].empty = true;
-    grids[pos].classList.remove('bomb');
   }
   if (status) {
     setTimeout(function(){
