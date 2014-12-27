@@ -41,3 +41,15 @@ class Direction(object):
                 return cls.DOWN
             else:
                 return cls.UP
+
+def oppDirection(d):
+    if d == Direction.UP:
+        return Direction.DOWN
+    elif d == Direction.DOWN:
+        return Direction.UP
+    elif d == Direction.LEFT:
+        return Direction.RIGHT
+    elif d == Direction.RIGHT:
+        return Direction.LEFT
+    else:
+        return Direction.STOP

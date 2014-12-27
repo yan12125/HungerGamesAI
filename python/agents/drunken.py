@@ -1,15 +1,17 @@
 import random
 import util
 from direction import Direction
+from agent import Agent
 
-
-class DrunkenAgent(object):
+class DrunkenAgent(Agent):
     def __init__(self):
-        self.lastMove = Direction.STOP
+        super(DrunkenAgent, self).__init__()
 
     def once(self, state):
         if not util.packet_queue.empty():
             return
+
+        player = state.me()
 
         move = self.lastMove
 
@@ -26,14 +28,4 @@ class DrunkenAgent(object):
         if move == Direction.STOP:
             return
 
-        distance = Direction.distances[move]
-
-        player = state.me()
-        player.x += distance[0] * player.speed
-        player.y += distance[1] * player.speed
-
-        util.packet_queue.put({
-            'event': 'player_position',
-            'x': player.x,
-            'y': player.y
-        })
+        self.goMove(player, move)

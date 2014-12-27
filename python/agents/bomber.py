@@ -1,36 +1,11 @@
 import util
-from grid import Grid
-from direction import Direction
 import search
+from agent import Agent
+from direction import Direction
 
-
-class BomberAgent(object):
+class BomberAgent(Agent):
     def __init__(self):
-        pass
-
-    def tryPutBomb(self, state, player):
-        if player.bombCount >= player.bombLimit:
-            return
-
-        bombX, bombY = util.coordToGrid(player.x, player.y)
-        bombPos = util.gridToPos(bombX, bombY)
-        grid = state.game_map.grids[bombPos]
-        if grid.grid_type is Grid.BOMB or grid.willBeBomb:
-            return
-
-        # grid.grid_type = Grid.BOMB
-        # grid.bombPower = player.bombPower
-        grid.willBeBomb = True
-
-        print("Put a bomb at %s" % util.gridStr(bombPos))
-        player.bombCount += 1
-        util.packet_queue.put({
-            'event': 'put_bomb',
-            'playerid': player.player_id,
-            'bombingPower': player.bombPower,
-            'x': bombX,
-            'y': bombY
-        })
+        super(BomberAgent, self).__init__()
 
     def once(self, state):
         if not util.packet_queue.empty():
@@ -60,14 +35,3 @@ class BomberAgent(object):
             centerX, centerY = util.posToCoord(playerPos)
             dx, dy = (centerX - player.x, centerY - player.y)
             self.goMove(player, Direction.byDistance(dx, dy))
-
-    def goMove(self, player, move):
-        newCoord = player.newCoord(move)
-
-        player.x, player.y = newCoord
-
-        util.packet_queue.put({
-            'event': 'player_position',
-            'x': player.x,
-            'y': player.y
-        })
