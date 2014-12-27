@@ -12,6 +12,7 @@ class Grid(object):
     def __init__(self):
         self.grid_type = None
         self.tool = None
+        self.willBeBomb = False
         self.bombPower = None
 
     def __str__(self):

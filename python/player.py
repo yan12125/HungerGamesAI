@@ -88,6 +88,7 @@ class Player(object):
 
     def putBomb(self):
         if self.isMe():
+            print("Received my bomb")
             return  # state is handled in agents
         self.bombCount += 1
 

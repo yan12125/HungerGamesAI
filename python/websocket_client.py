@@ -62,6 +62,8 @@ def handle_messages(event, data):
     elif event == 'bombing':
         murderer_id = str(data['murderer'])
         state.players[murderer_id].bombCount -= 1
+        state.game_map.bombing(data['x'], data['y'])
+        print(state.players[murderer_id].bombCount)
 
     # tool events
     elif event == 'tool_appeared':

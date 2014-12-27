@@ -64,9 +64,7 @@ class GameState(object):
             return
 
         if self.game_map.nearPos(player.x, player.y, pos):
-            print("I am on a bomb")
-            print((player.x, player.y))
-            print(util.posToGrid(pos))
+            # print("I am on a bomb")
             player.onBomb = True
             util.loop.add_timed_task(util.BASE_INTERVAL, self.checkLeave, pos)
         else:

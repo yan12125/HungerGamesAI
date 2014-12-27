@@ -14,8 +14,13 @@ class BomberAgent(object):
 
         bombX, bombY = util.coordToGrid(player.x, player.y)
         bombPos = util.gridToPos(bombX, bombY)
-        if state.game_map.gridIs(bombPos, Grid.BOMB):
+        grid = state.game_map.grids[bombPos]
+        if grid.grid_type is Grid.BOMB or grid.willBeBomb:
             return
+
+        # grid.grid_type = Grid.BOMB
+        # grid.bombPower = player.bombPower
+        grid.willBeBomb = True
 
         print("Put a bomb at %s" % util.gridStr(bombPos))
         player.bombCount += 1

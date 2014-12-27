@@ -59,6 +59,9 @@ class Map(object):
         self.grids[pos].bombPower = power
         self.dumpGrids()
 
+    def bombing(self, gridX, gridY):
+        self.grids[util.gridToPos(gridX, gridY)].willBeBomb = False
+
     def gridBombed(self, gridX, gridY):
         pos = util.gridToPos(gridX, gridY)
         print('Grid at %s bombed' % util.gridStr(pos))
