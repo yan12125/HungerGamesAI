@@ -14,23 +14,35 @@ class TaskLoop(object):
         # XXX is it safe to access elements in a Queue directly?
         new_timestamp = time.time()
         min_timeout = float("inf")
-        # print('-----------')
+
+        if util.DEBUG:
+            print('-----------')
+
         for i in range(0, len(self.q.queue)):
             timeout, callback, args, kwargs = self.q.queue[i]
-            # old_timeout = timeout
+
+            if util.DEBUG:
+                old_timeout = timeout
+
             timeout -= (new_timestamp - self.last_timestamp)
-            # if hasattr(callback, '__name__'):
-            #    cbName = callback.__name__
-            # else:
-            #    cbName = callback
-            # print(old_timeout, timeout, cbName)
+
+            if util.DEBUG:
+                if hasattr(callback, '__name__'):
+                    cbName = callback.__name__
+                else:
+                    cbName = callback
+                print(old_timeout, timeout, cbName)
+
             if min_timeout > timeout:
                 min_timeout = timeout
             self.q.queue[i] = (timeout, callback, args, kwargs)
         self.last_timestamp = new_timestamp
 
         sleep_time = max(0, min(util.BASE_INTERVAL, min_timeout))
-        # print(min_timeout)
+
+        if util.DEBUG:
+            print(min_timeout)
+
         gevent.sleep(sleep_time)
 
     def add_timed_task_impl(self, timeout, callback, *args, **kwargs):

@@ -94,12 +94,11 @@ def handle_messages(event, data):
 
 
 class WebSocketHandler(ws4py.client.WebSocketBaseClient):
-    def __init__(self, _agent, AIname, addr, protocols):
+    def __init__(self, AIname, addr, protocols):
         global thisPlayer_name
         super(WebSocketHandler, self).__init__(addr, protocols)
 
         self._th = gevent.Greenlet(self.run)
-        self.agent = _agent
 
         thisPlayer_name = AIname
 
@@ -131,9 +130,6 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
 
         event = obj['event']
         handle_messages(event, obj)
-
-        if GameState.current.game_started:
-            util.loop.add_task(self.agent.once, GameState.current)
 
     def closed(self, code, reason=None):
         print("Closed down, code = %d, reason = %s" % (code, reason))

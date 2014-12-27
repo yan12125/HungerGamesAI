@@ -9,6 +9,7 @@ class WalkbomberAgent(object):
         self.lastMove = Direction.STOP
         self.whichState = 0
         self.lastBombPos = None
+        self.lastTime = 0
     
     def tryPutBomb(self, state, player):
         if player.bombCount >= player.bombLimit:
@@ -16,12 +17,14 @@ class WalkbomberAgent(object):
 
         bombX, bombY = util.coordToGrid(player.x, player.y)
         bombPos = util.gridToPos(bombX, bombY)
-        
-        if state.game_map.gridIs(bombPos, Grid.BOMB):
+        grid = state.game_map.grids[bombPos]
+        if grid.grid_type is Grid.BOMB or grid.willBeBomb:
             return
 
         self.whichState = 1
         self.lastBombPos = bombPos
+        grid.willBeBomb = True
+
         print("Put a bomb at %s" % util.gridStr(bombPos))
         player.bombCount += 1
         util.packet_queue.put({
@@ -71,7 +74,7 @@ class WalkbomberAgent(object):
             else:
                 return Direction.STOP
 
-        print(self.whichState)
+        # print(self.whichState)
         #run away from my own bomb
         if self.whichState == 1 and move == Direction.STOP:
             move = random.choice(validMoves)

@@ -54,6 +54,14 @@ def load_agent(name):
     return agent
 
 
+def run_agent(agent):
+    state = GameState.current
+    if state.game_started:
+        agent.once(state)
+
+    util.loop.add_timed_task(util.BASE_INTERVAL, run_agent, agent)
+
+
 def main():
     logging.basicConfig(level=logging.DEBUG)
 
@@ -70,8 +78,9 @@ def main():
 
     try:
         addr = 'ws://127.0.0.1:3000/'
-        ws = WebSocketHandler(current_agent, myname, addr, ['game-protocol'])
+        ws = WebSocketHandler(myname, addr, ['game-protocol'])
         ws.connect()
+        run_agent(current_agent)
         # ws.run_forever()
         greenlets = []
         greenlets.append(ws._th)
