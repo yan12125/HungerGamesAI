@@ -1,4 +1,5 @@
 import random
+import search
 import util
 from direction import Direction, oppDirection
 from agent import Agent
@@ -29,8 +30,6 @@ class WalkbomberAgent(Agent):
             self.whichState = 2
         elif self.whichState == 0 and self.lastState == 2 and safe_map[gridX][gridY] == True:
             self.whichState = 3
-        elif self.whichState == 0 and self.lastState == 3 and playerPos != self.lastPos:
-            self.whichState = 3
 
         validMoves = state.validMovesForMe()
         if Direction.STOP in validMoves:
@@ -57,16 +56,17 @@ class WalkbomberAgent(Agent):
             self.whichState = 0
             self.lastState = 2
         elif self.whichState == 3:
-            if not state.bombValidForMe(move):
-                if not validMoves:
-                    print('Error: no valid moves')
-                    return
-                else:
-                    validMoves = [m for m in validMoves if m != move]
-                    move = random.choice(validMoves)
-                self.lastPos = playerPos
-                self.whichState = 0
-                self.lastState = 3
+            if not validMoves:
+                print('Error: no valid moves')
+                return
+            else:
+                def __internal_safe(pos):
+                    gridX, gridY = util.posToGrid(pos)
+                    return safe_map[gridX][gridY]
+                actions = search.bfs(state.game_map, playerPos, __internal_safe)
+                if actions:
+                    move = actions[0]
+
         if not state.moveValidForMe(move):
             if not validMoves:
                 print('Error: no valid moves')
