@@ -26,7 +26,7 @@ def bfs(game_map, startPos, criteria, N=1):
     count = 0
     frontier = [(startPos, [])]
     visited = set([startPos])
-    while True:
+    while frontier:
         pos, path = frontier.pop(0)
         if criteria(pos):
             count += 1
@@ -39,3 +39,4 @@ def bfs(game_map, startPos, criteria, N=1):
 
             newPath = path + [direction]
             frontier.append((newPos, newPath))
+            visited.update([newPos])

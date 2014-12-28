@@ -1,8 +1,9 @@
 import random
 import search
 import util
-from direction import Direction, oppDirection
+from direction import Direction
 from agent import Agent
+from grid import Grid
 
 class WalkbomberAgent(Agent):
     def __init__(self):
@@ -15,22 +16,32 @@ class WalkbomberAgent(Agent):
 
         move = self.lastMove
 
-        safe_map = state.game_map.safeMap()
-        def __internal_safe(pos):
-            gridX, gridY = util.posToGrid(pos)
-            return safe_map[gridX][gridY]
-
         player = state.me()
-
-        if not state.moveValidForMe(move):
-            self.tryPutBomb(state, player)
-
+        safe_map = state.game_map.safeMap()
         playerPos = util.coordToPos(player.x, player.y)
         gridX, gridY = util.posToGrid(playerPos)
- 
-        actions = search.bfs(state.game_map, playerPos, __internal_safe)
-        if actions:
-            move = actions[0]
+        def __internal_safe(pos):
+            gridX, gridY = util.posToGrid(pos)
+            return safe_map[gridX][gridY] and state.game_map.wayAroundPos(pos) > 1
+        def __findTool(pos):
+            return state.game_map.gridIs(pos, Grid.TOOL)
+
+        if state.game_map.safeMapAroundPos(playerPos) and (not state.moveValidForMe(move)\
+           or state.game_map.wayAroundPos(playerPos) < 4):
+            self.tryPutBomb(state, player)
+
+        if state.game_map.safeMapAroundPos(playerPos):
+            actions = search.bfs(state.game_map, playerPos, __findTool)
+            if actions:
+                move = actions[0]
+            if not state.bombValidForMe(move):
+                return
+        else:
+            #if safe_map[gridX][gridY]:
+            #    return
+            actions = search.bfs(state.game_map, playerPos, __internal_safe)
+            if actions:
+                move = actions[0]
 
         validMoves = state.validMovesForMe()
         if Direction.STOP in validMoves:
@@ -39,7 +50,7 @@ class WalkbomberAgent(Agent):
         if not validMoves:
             print('Error: no valid moves')
             return
-        
+
         if not state.moveValidForMe(move):
             move = random.choice(validMoves)
 

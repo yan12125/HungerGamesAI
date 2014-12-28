@@ -169,6 +169,38 @@ class Map(object):
 
         return safe_map
 
+    def safeMapAroundPos(self, pos):
+
+        def judgeNum(number):
+            return number >= 0 and number < util.map_dimension
+
+        safe_map = self.safeMap()
+        gridX, gridY = util.posToGrid(pos)
+        plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)]
+        pointAroundMe = \
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if judgeNum(gridX + x) and judgeNum(gridY + y)]
+        for x, y in pointAroundMe:
+            if not safe_map[x][y]:
+                return False
+        return True
+
+    def wayAroundPos(self, pos):
+
+        def judgeNum(number):
+            return number >= 0 and number < util.map_dimension
+
+        safe_map = self.safeMap()
+        gridX, gridY = util.posToGrid(pos)
+        plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        pointAroundMe = \
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if judgeNum(gridX + x) and judgeNum(gridY + y)]
+        wayCount = 0
+        for x, y in pointAroundMe:
+            position = util.gridToPos(x, y)
+            if safe_map[x][y] and (self.gridIs(position, Grid.EMPTY) or self.gridIs(position, Grid.TOOL)):
+                wayCount += 1
+        return wayCount
+
     @staticmethod
     def manhattan(coord1, coord2):
         return abs(coord1[0] - coord2[0]) + abs(coord1[1] - coord2[1])
