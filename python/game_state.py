@@ -134,3 +134,27 @@ class GameState(object):
 
     def goodMovesForMe(self):
         return self.goodMovesForPlayer(Player.thisPlayer_id)
+
+    def bombValidForPlayer(self, player_id, move):
+        safe_map = self.game_map.safeMap()
+
+        p = self.players[player_id]
+        move_distance = Direction.distances[move]
+        newX = p.x + move_distance[0] * p.speed
+        newY = p.y + move_distance[1] * p.speed
+        gridX, gridY = util.coordToGrid(newX, newY)
+        return safe_map[gridX][gridY]
+
+    def bombValidForMe(self, move):
+        return self.bombValidForPlayer(Player.thisPlayer_id, move)
+
+    def validBombForPlayer(self, player_id):
+        ret = []
+        for move in Direction.ALL:
+            if self.bombValidForPlayer(player_id, move):
+                ret.append(move)
+
+        return ret
+
+    def validBombForMe(self):
+        return self.validbombForPlayer(Player.thisPlayer_id)

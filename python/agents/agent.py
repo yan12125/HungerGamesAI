@@ -6,7 +6,8 @@ class Agent(object):
     def __init__(self):
         self.lastMove = Direction.STOP
         self.whichState = 0
-        self.lastBombPos = None
+        self.lastState = 0
+        self.lastPos = None
 
     def tryPutBomb(self, state, player):
         if player.bombCount >= player.bombLimit:
@@ -19,7 +20,7 @@ class Agent(object):
             return False
 
         self.whichState = 1
-        self.lastBombPos = bombPos
+        self.lastPos = bombPos
         grid.willBeBomb = True
 
         print("Put a bomb at %s" % util.gridStr(bombPos))
