@@ -170,30 +170,22 @@ class Map(object):
         return safe_map
 
     def safeMapAroundPos(self, pos):
-
-        def judgeNum(number):
-            return number >= 0 and number < util.map_dimension
-
         safe_map = self.safeMap()
         gridX, gridY = util.posToGrid(pos)
         plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)]
         pointAroundMe = \
-        [(gridX + x, gridY + y) for x, y in plusAndMinus if judgeNum(gridX + x) and judgeNum(gridY + y)]
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if self.gridInMap(gridX + x, girdY + y)]
         for x, y in pointAroundMe:
             if not safe_map[x][y]:
                 return False
         return True
 
     def wayAroundPos(self, pos):
-
-        def judgeNum(number):
-            return number >= 0 and number < util.map_dimension
-
         safe_map = self.safeMap()
         gridX, gridY = util.posToGrid(pos)
         plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         pointAroundMe = \
-        [(gridX + x, gridY + y) for x, y in plusAndMinus if judgeNum(gridX + x) and judgeNum(gridY + y)]
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if self.gridInMap(gridX + x, gridY + y)]
         wayCount = 0
         for x, y in pointAroundMe:
             position = util.gridToPos(x, y)
