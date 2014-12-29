@@ -2,6 +2,7 @@ import util
 import texttable
 from grid import Grid
 import math
+import time  # for bomb put time
 from direction import Direction
 
 NEAR_ERR = 25  # half of the player width
@@ -56,8 +57,10 @@ class Map(object):
     def bombPut(self, gridX, gridY, power):
         pos = util.gridToPos(gridX, gridY)
         print('Bomb put at %s' % util.gridStr(pos))
-        self.grids[pos].grid_type = Grid.BOMB
-        self.grids[pos].bombPower = power
+        grid = self.grids[pos]
+        grid.grid_type = Grid.BOMB
+        grid.bombPower = power
+        grid.bombPutTime = time.time()
         self.invalidateSafeMap()
         self.dumpGrids()
 
@@ -150,6 +153,11 @@ class Map(object):
     def gridStrings(self):
         return [str(self.grids[pos]) for pos in util.grid_gen]
 
+    # XXX
+    """
+    Currently on when a bomb put and a bomb vanishing
+    Possibly race conditions?
+    """
     def invalidateSafeMap(self):
         self.safe_map_cache = None
 
