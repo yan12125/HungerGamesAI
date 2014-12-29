@@ -11,6 +11,7 @@ class Map(object):
 
     def __init__(self):
         self.grids = [Grid() for i in util.grid_gen]  # indexed by pos
+        self.safe_map_cache = None
 
     def setGrids(self, remote_grids):
         for i in util.grid_gen:
@@ -57,10 +58,12 @@ class Map(object):
         print('Bomb put at %s' % util.gridStr(pos))
         self.grids[pos].grid_type = Grid.BOMB
         self.grids[pos].bombPower = power
+        self.invalidateSafeMap()
         self.dumpGrids()
 
     def bombing(self, gridX, gridY):
         self.grids[util.gridToPos(gridX, gridY)].willBeBomb = False
+        self.invalidateSafeMap()
 
     def gridBombed(self, gridX, gridY):
         pos = util.gridToPos(gridX, gridY)
@@ -147,7 +150,13 @@ class Map(object):
     def gridStrings(self):
         return [str(self.grids[pos]) for pos in util.grid_gen]
 
+    def invalidateSafeMap(self):
+        self.safe_map_cache = None
+
     def safeMap(self):
+        if self.safe_map_cache:
+            return self.safe_map_cache
+
         safe_map = util.linearGridToMap([True for i in util.grid_gen])
 
         def __markAsUnsafe(gridX, gridY):
@@ -167,6 +176,7 @@ class Map(object):
                         newY = gridY + distance[1] * (i+1)
                         __markAsUnsafe(newX, newY)
 
+        self.safe_map_cache = safe_map
         return safe_map
 
     def safeMapAroundPos(self, pos):
@@ -174,7 +184,7 @@ class Map(object):
         gridX, gridY = util.posToGrid(pos)
         plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)]
         pointAroundMe = \
-        [(gridX + x, gridY + y) for x, y in plusAndMinus if self.gridInMap(gridX + x, girdY + y)]
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if self.gridInMap(gridX + x, gridY + y)]
         for x, y in pointAroundMe:
             if not safe_map[x][y]:
                 return False

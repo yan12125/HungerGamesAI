@@ -22,7 +22,7 @@ def find_successors(game_map, gridX, gridY):
     return successors
 
 
-def bfs(game_map, startPos, criteria, N=1):
+def bfs(game_map, startPos, criteria, pathCriteria=lambda pos: True, N=1):
     count = 0
     frontier = [(startPos, [])]
     visited = set([startPos])
@@ -37,6 +37,7 @@ def bfs(game_map, startPos, criteria, N=1):
             if newPos in visited:
                 continue
 
-            newPath = path + [direction]
-            frontier.append((newPos, newPath))
-            visited.update([newPos])
+            if pathCriteria(newPos):
+                newPath = path + [direction]
+                frontier.append((newPos, newPath))
+                visited.update([newPos])

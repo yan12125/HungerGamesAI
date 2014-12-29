@@ -33,7 +33,7 @@ class IwillbombyouAgent(Agent):
             self.tryPutBomb(state, player)
 
         if safe_map[gridX][gridY]:
-            actions = search.bfs(state.game_map, playerPos, __findPlayer)
+            actions = search.bfs(state.game_map, playerPos, __findPlayer, pathCriteria=__internal_safe)
             if actions:
                 move = actions[0]
             if not state.bombValidForMe(move):

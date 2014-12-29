@@ -56,10 +56,21 @@ class GameState(object):
         return self.players[Player.thisPlayer_id]
 
     def posHasPlayer(self, pos):
+        if util.DEBUG:
+            playerPositions = []
+
         for player_id, player in self.players.items():
             playerPos = util.coordToPos(player.x, player.y)
+
+            if util.DEBUG:
+                playerPositions.append(playerPos)
+
             if pos == playerPos and player != self.me():
                 return True
+
+        if util.DEBUG:
+            print(playerPositions, pos)
+
         return False
 
     def bombPlayer(self, pos):
