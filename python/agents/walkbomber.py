@@ -37,11 +37,13 @@ class WalkbomberAgent(Agent):
             if not state.bombValidForMe(move):
                 return
         else:
-            #if safe_map[gridX][gridY]:
-            #    return
+            # if safe_map[gridX][gridY]:
+            #     return
             actions = search.bfs(state.game_map, playerPos, __internal_safe)
             if actions:
                 move = actions[0]
+            if safe_map[gridX][gridY] and not state.bombValidForMe(move):
+                return
 
         validMoves = state.validMovesForMe()
         if Direction.STOP in validMoves:
