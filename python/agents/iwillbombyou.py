@@ -10,7 +10,6 @@ class IwillbombyouAgent(Agent):
     def __init__(self):
         super(IwillbombyouAgent, self).__init__()
         self.lastMove = Direction.UP
-        self.passFlag = False
 
     def once(self, state):
         if not util.packet_queue.empty():
@@ -37,36 +36,25 @@ class IwillbombyouAgent(Agent):
             myMap.wayAroundPos(playerPos) == 1):
             self.tryPutBomb(state, player)
 
-        if myMap.safeMapAroundPos(playerPos):
-            actions = search.bfs(myMap, playerPos, __findTool, __internal_safe)
+        actions = search.bfs(myMap, playerPos, __findTool)
+        if actions:
+            move = actions[0]
+        else:
+            actions = search.bfs(myMap, playerPos, __findPlayer)
+            if actions:
+                move = actions[0]
+
+        distance = Direction.distances[move]
+        coorX = player.x + distance[0] * player.speed
+        coorY = player.y + distance[1] * player.speed
+        coorPos = util.coordToPos(coorX, coorY)
+        bombTime = state.findBombTime(coorPos) 
+        if not (bombTime * player.speed / util.BASE_INTERVAL > 3 * util.grid_dimension):
+            actions = search.bfs(state.game_map, playerPos, __internal_safe)
             if actions:
                 move = actions[0]
             else:
-                actions = search.bfs(myMap, playerPos, __findPlayer, __internal_safe)
-                if actions:
-                    move = actions[0]
-        else:
-            actions = search.bfs(state.game_map, playerPos, __internal_safe, __internal_safe)
-            if actions:
-                move = actions[0]
-            if not state.bombValidForMe(move) and not self.passFlag:
-                distance = Direction.distances[move]
-                newX = gridX + distance[0]
-                newY = gridY + distance[1]
-                coorX = player.x + distance[0] * player.speed
-                coorY = player.y + distance[1] * player.speed
-                pos = util.gridToPos(newX, newY)
-                coorPos = util.coordToPos(coorX, coorY)
-                bombTime = state.findBombTime(coorPos)
-                if not (bombTime * player.speed / util.BASE_INTERVAL > util.grid_dimension)\
-                     and Map.gridInMap(newX, newY) and myMap.grids[pos].canPass():
-                    return
-                print(bombTime)
-                self.passFlag = True
-            elif not state.bombValidForMe(move) and self.passFlag:
-                move = self.lastMove
-            elif state.bombValidForMe(move):
-                self.passFlag = False
+                return
 
         validMoves = state.validMovesForMe()
         if Direction.STOP in validMoves:

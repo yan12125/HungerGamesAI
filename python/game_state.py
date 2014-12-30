@@ -163,6 +163,8 @@ class GameState(object):
                         break
         return (Grid.BOMB_DELAY - bombTime)
 
+    def tryBombAndRun(self, pos):
+
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself
         player = self.me()
