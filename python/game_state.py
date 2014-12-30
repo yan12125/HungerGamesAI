@@ -272,8 +272,8 @@ class GameState(object):
         grid.willBeBomb = True
         state.game_map.bombPut(GridPosXY[0],GridPosXY[1],player.bombPower)
         player.putBomb()
-        for playerItem in state.players:
-          self.checkLeavePlayer(playerItem,GridPos)
+#        for playerItem in state.players:
+#          self.checkLeavePlayer(playerItem,GridPos)
         return state
 ####################################
 ##PLayer move##
