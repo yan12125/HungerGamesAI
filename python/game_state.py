@@ -67,7 +67,6 @@ class GameState(object):
     def me(self):
         return self.players[Player.thisPlayer_id]
 
-<<<<<<< HEAD
     def others(self):
         ''' Return a list of other players
 
@@ -77,7 +76,6 @@ class GameState(object):
           if item!=Player.thisPlayer_id:
             otherlist.append(self.players[item])
         return otherlist
-=======
     def posHasPlayer(self, pos):
         if util.DEBUG:
             playerPositions = []
@@ -136,7 +134,6 @@ class GameState(object):
                         if self.game_map.gridIs(pos, Grid.VWALL):
                             return True
         return False
->>>>>>> 49a622048d295db88a4179f34bed863018d0aa06
 
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself
