@@ -37,7 +37,6 @@ def bfs(game_map, startPos, criteria, pathCriteria=lambda pos: True, N=1):
             if newPos in visited:
                 continue
 
-<<<<<<< HEAD
             newPath = path + [direction]
             frontier.append((newPos, newPath))
             visited.update([newPos])
@@ -62,9 +61,7 @@ def bfs_count(game_map, startPos, criteria, N=20):
             newPath = path + [direction]
             frontier.append((newPos, newPath))
             visited.update([newPos])
-=======
             if pathCriteria(newPos):
                 newPath = path + [direction]
                 frontier.append((newPos, newPath))
                 visited.update([newPos])
->>>>>>> 49a622048d295db88a4179f34bed863018d0aa06
