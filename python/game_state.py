@@ -2,6 +2,7 @@ from game_map import Map
 from player import Player
 from direction import Direction
 from grid import Grid
+from copy import deepcopy
 import util
 
 
@@ -9,10 +10,21 @@ class GameState(object):
     # Static
     current = None
 
-    def __init__(self):
+    def __init__(self, prevState=None):
+      if prevState!=None:
+         self.game_started=prevState.game_started
+         self.game_map=deepcopy(prevState.game_map)
+         self.players=deepcopy(prevState.players)
+      else:
         self.game_started = False
         self.game_map = Map()
         self.players = {}
+    def deepCopy(self):
+      state = GameState(self)
+      state.game_started = self.game_started
+      state.game_map = self.game_map
+      state.players = self.players
+      return state
 
     def start_game(self, already_started):
         def __internal_preparing(state):
@@ -54,6 +66,16 @@ class GameState(object):
 
     def me(self):
         return self.players[Player.thisPlayer_id]
+
+    def others(self):
+        ''' Return a list of other players
+
+        '''
+        otherlist=[]
+        for item in self.players:
+          if item!=Player.thisPlayer_id:
+            otherlist.append(self.players[item])
+        return otherlist
 
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself
@@ -158,3 +180,81 @@ class GameState(object):
 
     def validBombForMe(self):
         return self.validbombForPlayer(Player.thisPlayer_id)
+
+    def getMePosition(self): 
+        return (self.me().x,self.me().y)  
+
+    def getPlayerPosition(self,PlayerID):
+        return (self.players[PlayerID].x, self.players[PlayerID].y)
+
+    def generateSuccessor( self, agentID, action, bombPut=False):
+      """
+      Returns the successor state after the specified agent takes the action.
+      """
+      state = GameState(self)
+      Pos = state.getPlayerPosition(agentID)
+      GridPos=util.coordToPos(Pos[0],Pos[1])
+      GridPosXY=util.posToGrid(GridPos)
+      grid = state.game_map.grids[GridPos]
+      player = state.players[agentID]
+      if action!=Direction.STOP:
+        distance = Direction.distances[action]
+        newGridPosXY = (GridPosXY[0]+distance[0],\
+                        GridPosXY[1]+distance[1])
+      else: newGridPosXY=GridPosXY
+      newCorXY =  util.gridToCoord(newGridPosXY[0],newGridPosXY[1])
+      if state.game_map.near(newCorXY[0],newCorXY[1],player.onBomb, player.penetrate):
+         return state
+      newGridPos=util.gridToPos(newGridPosXY[0],newGridPosXY[1])
+      newGrid = state.game_map.grids[newGridPos]
+      game_map = state.game_map
+###Need TO Check more###############
+##Eat Bomb ##
+      if bombPut== True : 
+        grid.willBeBomb = True
+        state.game_map.bombPut(GridPosXY[0],GridPosXY[1],player.bombPower)
+        player.putBomb()
+        for playerItem in state.players:
+          self.checkLeavePlayer(playerItem,GridPos)
+        return state
+####################################
+##PLayer move##
+      player.x , player.y = util.gridToCoord(newGridPosXY[0],newGridPosXY[1])
+##Player Eat TOOL##
+      if state.game_map.gridIs(newGridPos, Grid.TOOL):
+        ##Tool disapear###
+        toolname = util.tools_map[newGrid.tool]
+        newGrid.grid_type = 'empty'
+        newGrid.tool=None
+        game_map.dumpGrids()
+        ##Tool Apply ###
+        notInPenetrate = not player.penetrate
+        player.toolapply(newGrid.tool)
+##        if grid.tool == 5 and notInPenetrate:  # ufo
+##          util.loop.add_timed_task(15, state.checkLeaveWall)
+
+
+      return state
+
+
+
+
+      
+    ######################################################
+    ## The following is the private method, you should  ##
+    ## not call it from the outside.                    ##
+    ######################################################
+    def checkLeavePlayer(self, player,pos):
+        if self.game_map.grids[pos].grid_type != Grid.BOMB:
+            # XXX I don't know why bombs vanished
+#            print('Bomb at %s vanished' % util.gridStr(pos))
+            return
+
+        if self.game_map.nearPos(player.x, player.y, pos):
+            # print("I am on a bomb")
+            player.onBomb = True
+            util.loop.add_timed_task(util.BASE_INTERVAL, self.checkLeave, player, pos)
+        else:
+            print("I exit a bomb")
+            player.onBomb = False
+
