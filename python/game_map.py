@@ -208,7 +208,7 @@ class Map(object):
         gridX, gridY = util.posToGrid(pos)
         plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         pointAroundMe = \
-        [(gridX + x, gridY + y) for x, y in plusAndMinus if self.gridInMap(gridX + x, gridY + y)]
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if Map.gridInMap(gridX + x, gridY + y)]
         wayCount = 0
         for x, y in pointAroundMe:
             position = util.gridToPos(x, y)

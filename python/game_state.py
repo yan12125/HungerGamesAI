@@ -4,6 +4,7 @@ from direction import Direction
 from grid import Grid
 from copy import deepcopy
 import util
+import time
 
 
 class GameState(object):
@@ -141,6 +142,26 @@ class GameState(object):
                     else:
                         break
         return False
+
+    def findBombTime(self, pos):
+        bombTime = 0
+
+        gridX, gridY = util.posToGrid(pos)
+        for direction in Direction.ALL:
+            if direction != Direction.STOP:
+                for i in range(0, util.map_dimension):
+                    distance = Direction.distances[direction]
+                    newX = gridX + distance[0] * (i+1)
+                    newY = gridY + distance[1] * (i+1)
+                    pos = util.gridToPos(newX, newY)
+                    if Map.gridInMap(newX, newY):
+                        if self.game_map.gridIs(pos, Grid.BOMB):
+                            bombTime = max(bombTime, time.time() - self.game_map.grids[pos].bombPutTime)
+                        elif self.game_map.gridIs(pos, Grid.NVWALL):
+                            break
+                    else:
+                        break
+        return (Grid.BOMB_DELAY - bombTime)
 
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself

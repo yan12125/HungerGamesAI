@@ -19,6 +19,7 @@ class Agent(object):
         if grid.grid_type is Grid.BOMB or grid.willBeBomb:
             return False
 
+        self.lastState = self.whichState
         self.whichState = 1
         self.lastPos = bombPos
         grid.willBeBomb = True
