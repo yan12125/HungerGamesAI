@@ -112,14 +112,17 @@ class GameState(object):
                     distance = Direction.distances[direction]
                     newX = gridX + distance[0] * (i+1)
                     newY = gridY + distance[1] * (i+1)
+                    newP = util.gridToPos(newX, newY)
+                    if Map.gridInMap(newX, newY) and not self.game_map.grids[newP].canPass():
+                        break
                     __markAsBomb(newX, newY)
         for play_id, player in self.players.items():
             gridX, gridY = util.coordToGrid(player.x, player.y)
-            if bomb_map[gridX][gridY] and player != me:
+            if bomb_map[gridX][gridY] and player.player_id != me.player_id:
                 return True
         return False
 
-    def bombWall(self, pos):
+    def bombThing(self, pos, kind):
         me = self.me()
 
         gridX, gridY = util.posToGrid(pos)
@@ -131,8 +134,12 @@ class GameState(object):
                     newY = gridY + distance[1] * (i+1)
                     pos = util.gridToPos(newX, newY)
                     if Map.gridInMap(newX, newY):
-                        if self.game_map.gridIs(pos, Grid.VWALL):
+                        if self.game_map.gridIs(pos, kind):
                             return True
+                        elif self.game_map.gridIs(pos, Grid.NVWALL):
+                            break
+                    else:
+                        break
         return False
 
     def checkLeave(self, pos):

@@ -30,9 +30,10 @@ class IwillbombyouAgent(Agent):
         def __findTool(pos):
             return myMap.gridIs(pos, Grid.TOOL)
 
-        if  safe_map[gridX][gridY] and (state.bombPlayer(playerPos) or\
-            (state.bombWall(playerPos) and myMap.wayAroundPos(playerPos) > 2)
-            or myMap.wayAroundPos(playerPos) == 1):
+        if  myMap.safeMapAroundPos(playerPos) and not state.bombThing(playerPos, Grid.TOOL) and\
+            (state.bombPlayer(playerPos) or\
+            (state.bombThing(playerPos, Grid.VWALL) and myMap.wayAroundPos(playerPos) > 2) or\
+            myMap.wayAroundPos(playerPos) == 1):
             self.tryPutBomb(state, player)
 
         if safe_map[gridX][gridY]:
@@ -64,7 +65,7 @@ class IwillbombyouAgent(Agent):
             newY = gridY + distance[1]
             newP = util.gridToPos(newX, newY)
             if Map.gridInMap(newX, newY) and myMap.grids[newP].canPass():
-                centerX, centerY = util.posToCoord(newP)
+                centerX, centerY = util.posToCoord(playerPos)
                 player.x = centerX
                 player.y = centerY
             else:

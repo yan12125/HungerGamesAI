@@ -73,11 +73,13 @@ class Map(object):
         print('Grid at %s bombed' % util.gridStr(pos))
         self.grids[pos].grid_type = 'empty'
         self.dumpGrids()
+        self.invalidateSafeMap()
 
     def wallBombed(self, gridX, gridY):
         pos = util.gridToPos(gridX, gridY)
         print('Wall at %s bombed' % util.gridStr(pos))
         # Grid settings already done in gridBombed()
+        self.invalidateSafeMap()
 
     def bombsGen(self):
         for i in range(0, len(self.grids)):
@@ -182,6 +184,9 @@ class Map(object):
                         distance = Direction.distances[direction]
                         newX = gridX + distance[0] * (i+1)
                         newY = gridY + distance[1] * (i+1)
+                        newP = util.gridToPos(newX, newY)
+                        if Map.gridInMap(newX, newY) and not self.grids[newP].canPass():
+                            break
                         __markAsUnsafe(newX, newY)
 
         self.safe_map_cache = safe_map
