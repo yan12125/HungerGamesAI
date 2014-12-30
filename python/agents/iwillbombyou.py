@@ -2,7 +2,7 @@ import random
 import search
 import util
 from direction import Direction
-from agent import Agent
+from .agent import Agent
 from grid import Grid
 
 class IwillbombyouAgent(Agent):

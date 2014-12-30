@@ -1,6 +1,6 @@
 import util
 import search
-from agent import Agent
+from .agent import Agent
 from direction import Direction
 
 class BomberAgent(Agent):
