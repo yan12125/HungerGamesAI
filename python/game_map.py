@@ -207,7 +207,7 @@ class Map(object):
         wayCount = 0
         for x, y in pointAroundMe:
             position = util.gridToPos(x, y)
-            if safe_map[x][y] and (self.gridIs(position, Grid.EMPTY) or self.gridIs(position, Grid.TOOL)):
+            if safe_map[x][y] and self.grids[pos].canPass():
                 wayCount += 1
         return wayCount
 
