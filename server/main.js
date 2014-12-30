@@ -384,12 +384,12 @@ function toolappear_impl(getgrid) {
     grids[getgrid].empty = true;
     grids[getgrid].type = 'tool';
     grids[getgrid].tool = toolty;
+    sendObjToAllClient({
+      event: 'tool_appeared',
+      grid: getgrid,
+      tooltype: toolty
+    });
   }
-  sendObjToAllClient({
-    event: 'tool_appeared',
-    grid: getgrid,
-    tooltype: toolty
-  });
   //console.log('tool');
   //console.log(getgrid);
 }

@@ -67,6 +67,7 @@ class GameState(object):
     def me(self):
         return self.players[Player.thisPlayer_id]
 
+<<<<<<< HEAD
     def others(self):
         ''' Return a list of other players
 
@@ -76,6 +77,66 @@ class GameState(object):
           if item!=Player.thisPlayer_id:
             otherlist.append(self.players[item])
         return otherlist
+=======
+    def posHasPlayer(self, pos):
+        if util.DEBUG:
+            playerPositions = []
+
+        for player_id, player in self.players.items():
+            playerPos = util.coordToPos(player.x, player.y)
+
+            if util.DEBUG:
+                playerPositions.append(playerPos)
+
+            if pos == playerPos and player != self.me():
+                return True
+
+        if util.DEBUG:
+            print(playerPositions, pos)
+
+        return False
+
+    def bombPlayer(self, pos):
+        me = self.me()
+        bomb_map = util.linearGridToMap([False for i in util.grid_gen])
+
+        def __markAsBomb(gridX, gridY):
+            if not Map.gridInMap(gridX, gridY):
+                return
+            bomb_map[gridX][gridY] = True
+
+        gridX, gridY = util.posToGrid(pos)
+        for direction in Direction.ALL:
+            if direction == Direction.STOP:
+                __markAsBomb(gridX, gridY)
+            else:
+                for i in range(0, me.bombPower):
+                    distance = Direction.distances[direction]
+                    newX = gridX + distance[0] * (i+1)
+                    newY = gridY + distance[1] * (i+1)
+                    __markAsBomb(newX, newY)
+        for play_id, player in self.players.items():
+            gridX, gridY = util.coordToGrid(player.x, player.y)
+            if bomb_map[gridX][gridY] and player != me:
+                return True
+        return False
+
+    def bombWall(self, pos):
+        me = self.me()
+
+        gridX, gridY = util.posToGrid(pos)
+        for direction in Direction.ALL:
+            if direction != Direction.STOP:
+                for i in range(0, me.bombPower):
+                    distance = Direction.distances[direction]
+                    newX = gridX + distance[0] * (i+1)
+                    newY = gridY + distance[1] * (i+1)
+                    pos = util.gridToPos(newX, newY)
+                    if Map.gridInMap(newX, newY):
+                        if self.game_map.gridIs(pos, Grid.VWALL):
+                            return True
+        return False
+>>>>>>> 49a622048d295db88a4179f34bed863018d0aa06
 
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself

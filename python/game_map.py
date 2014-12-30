@@ -2,6 +2,7 @@ import util
 import texttable
 from grid import Grid
 import math
+import time  # for bomb put time
 from direction import Direction
 
 NEAR_ERR = 25  # half of the player width
@@ -11,6 +12,7 @@ class Map(object):
 
     def __init__(self):
         self.grids = [Grid() for i in util.grid_gen]  # indexed by pos
+        self.safe_map_cache = None
 
     def setGrids(self, remote_grids):
         for i in util.grid_gen:
@@ -55,12 +57,16 @@ class Map(object):
     def bombPut(self, gridX, gridY, power):
         pos = util.gridToPos(gridX, gridY)
         print('Bomb put at %s' % util.gridStr(pos))
-        self.grids[pos].grid_type = Grid.BOMB
-        self.grids[pos].bombPower = power
+        grid = self.grids[pos]
+        grid.grid_type = Grid.BOMB
+        grid.bombPower = power
+        grid.bombPutTime = time.time()
+        self.invalidateSafeMap()
         self.dumpGrids()
 
     def bombing(self, gridX, gridY):
         self.grids[util.gridToPos(gridX, gridY)].willBeBomb = False
+        self.invalidateSafeMap()
 
     def gridBombed(self, gridX, gridY):
         pos = util.gridToPos(gridX, gridY)
@@ -147,7 +153,18 @@ class Map(object):
     def gridStrings(self):
         return [str(self.grids[pos]) for pos in util.grid_gen]
 
+    # XXX
+    """
+    Currently on when a bomb put and a bomb vanishing
+    Possibly race conditions?
+    """
+    def invalidateSafeMap(self):
+        self.safe_map_cache = None
+
     def safeMap(self):
+        if self.safe_map_cache:
+            return self.safe_map_cache
+
         safe_map = util.linearGridToMap([True for i in util.grid_gen])
 
         def __markAsUnsafe(gridX, gridY):
@@ -167,7 +184,32 @@ class Map(object):
                         newY = gridY + distance[1] * (i+1)
                         __markAsUnsafe(newX, newY)
 
+        self.safe_map_cache = safe_map
         return safe_map
+
+    def safeMapAroundPos(self, pos):
+        safe_map = self.safeMap()
+        gridX, gridY = util.posToGrid(pos)
+        plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)]
+        pointAroundMe = \
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if self.gridInMap(gridX + x, gridY + y)]
+        for x, y in pointAroundMe:
+            if not safe_map[x][y]:
+                return False
+        return True
+
+    def wayAroundPos(self, pos):
+        safe_map = self.safeMap()
+        gridX, gridY = util.posToGrid(pos)
+        plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        pointAroundMe = \
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if self.gridInMap(gridX + x, gridY + y)]
+        wayCount = 0
+        for x, y in pointAroundMe:
+            position = util.gridToPos(x, y)
+            if safe_map[x][y] and (self.gridIs(position, Grid.EMPTY) or self.gridIs(position, Grid.TOOL)):
+                wayCount += 1
+        return wayCount
 
     @staticmethod
     def manhattan(coord1, coord2):

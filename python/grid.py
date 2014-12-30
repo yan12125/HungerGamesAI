@@ -9,11 +9,14 @@ class Grid(object):
     NVWALL = 'nvwall'  # non-volatile walls
     TOOL = 'tool'
 
+    BOMB_DELAY = 3  # bombs explodes after 3 seconds
+
     def __init__(self):
         self.grid_type = None
         self.tool = None
         self.willBeBomb = False
         self.bombPower = None
+        self.bombPutTime = None
 
     def __str__(self):
         if self.grid_type == 'tool':
