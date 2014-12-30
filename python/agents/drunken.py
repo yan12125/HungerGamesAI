@@ -1,7 +1,7 @@
 import random
 import util
 from direction import Direction
-from agent import Agent
+from .agent import Agent
 
 class DrunkenAgent(Agent):
     def __init__(self):
