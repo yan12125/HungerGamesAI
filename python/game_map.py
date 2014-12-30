@@ -202,6 +202,22 @@ class Map(object):
             if not safe_map[x][y]:
                 return False
         return True
+    def safeMapAround(self,pos):
+        '''return list of action leading to safe place
+          
+        '''
+        safe_map = self.safeMap()
+        gridX, gridY = util.posToGrid(pos)
+        plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)]
+        Move = [Direction.LEFT,Direction.RIGHT,Direction.DOWN,Direction.UP,Direction.STOP]
+        MoveList=[]
+        pointAroundMe = \
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if self.gridInMap(gridX + x, gridY + y)]
+        for item in range(len( pointAroundMe)):
+            if safe_map[pointAroundMe[item][0]][pointAroundMe[item][1]]:
+                MoveList.append(Move[item])
+        return MoveList
+
 
     def wayAroundPos(self, pos):
         safe_map = self.safeMap()
