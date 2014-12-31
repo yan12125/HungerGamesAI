@@ -5,6 +5,7 @@ from grid import Grid
 from copy import deepcopy
 import util
 import time
+import search
 
 
 class GameState(object):
@@ -163,7 +164,41 @@ class GameState(object):
                         break
         return (Grid.BOMB_DELAY - bombTime)
 
-    def tryBombAndRun(self, pos):
+    def tryBombAndRun(self, pos, power):
+        safeMap = deepcopy(self.game_map.safeMap())
+        gameMap = deepcopy(self.game_map)
+        gameMap.grids[pos].grid_type = Grid.BOMB
+        gameMap.grids[pos].willBeBomb = True
+        gameMap.grids[pos].bombPower = power
+        gameMap.grids[pos].bombPutTime = time.time()
+
+        def __markAsUnsafe(gridX, gridY):
+            if not Map.gridInMap(gridX, gridY):
+                return
+            safeMap[gridX][gridY] = False
+
+        def __internal_safe(pos):
+            gridX, gridY = util.posToGrid(pos)
+            return safeMap[gridX][gridY]
+
+        gridX, gridY = util.posToGrid(pos)
+        for direction in Direction.ALL:
+            if direction == Direction.STOP:
+                __markAsUnsafe(gridX, gridY)
+            else:
+                for i in range(0, power):
+                    distance = Direction.distances[direction]
+                    newX = gridX + distance[0] * (i+1)
+                    newY = gridY + distance[1] * (i+1)
+                    newP = util.gridToPos(newX, newY)
+                    if Map.gridInMap(newX, newY) and not gameMap.grids[newP].canPass():
+                        break
+                    __markAsUnsafe(newX, newY)
+        path = search.bfs(gameMap, pos, __internal_safe)
+        if path:
+            return len(search.bfs(gameMap, pos, __internal_safe))
+        else:
+            return 0
 
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself
@@ -172,12 +207,12 @@ class GameState(object):
             # XXX I don't know why bombs vanished
             print('Bomb at %s vanished' % util.gridStr(pos))
             return
-
+        playerPos = util.coordToPos(player.x, player.y)
         if self.game_map.nearPos(player.x, player.y, pos):
             # print("I am on a bomb")
             player.onBomb = True
             util.loop.add_timed_task(util.BASE_INTERVAL, self.checkLeave, pos)
-        else:
+        elif self.game_map.grids[playerPos] != Grid.BOMB and player.penetrate == False:
             print("I exit a bomb")
             player.onBomb = False
 
@@ -189,6 +224,7 @@ class GameState(object):
         else:
             print("Dropping UFO")
             player.penetrate = False
+            player.onBomb = False
             util.packet_queue.put({
                 'event': 'ufo_removal',
                 'playerid': Player.thisPlayer_id

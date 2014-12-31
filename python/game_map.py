@@ -202,6 +202,7 @@ class Map(object):
             if not safe_map[x][y]:
                 return False
         return True
+
     def safeMapAround(self,pos):
         '''return list of action leading to safe place
           

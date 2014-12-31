@@ -83,6 +83,7 @@ class Player(object):
         elif tooltype == 5:
             print("Player %s is penetrate" % self.player_id)
             self.penetrate = True
+            self.onBomb = True
         elif tooltype == 6:
             pass
 

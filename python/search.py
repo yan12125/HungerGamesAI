@@ -1,9 +1,10 @@
 from direction import Direction
 from game_map import Map
 import util
+from player import Player
 
 
-def find_successors(game_map, gridX, gridY):
+def find_successors(game_map, gridX, gridY, Player=Player(-1, "test")):
     successors = []
     for direction in Direction.ALL:
         if direction == Direction.STOP:
@@ -15,14 +16,14 @@ def find_successors(game_map, gridX, gridY):
             continue
 
         newPos = util.gridToPos(newX, newY)
-        if game_map.grids[newPos].isWall():
+        if not Player.penetrate and not game_map.grids[newPos].canPass():
             continue
 
         successors.append((direction, newPos))
     return successors
 
 
-def bfs(game_map, startPos, criteria, pathCriteria=lambda pos: True, N=1):
+def bfs(game_map, startPos, criteria, pathCriteria=lambda pos: True, Player=Player(-1, "test"), N=1):
     count = 0
     frontier = [(startPos, [])]
     visited = set([startPos])
@@ -32,7 +33,8 @@ def bfs(game_map, startPos, criteria, pathCriteria=lambda pos: True, N=1):
             count += 1
             if count == N:
                 return path
-        successors = find_successors(game_map, *util.posToGrid(pos))
+        gridX, gridY = util.posToGrid(pos)
+        successors = find_successors(game_map, gridX, gridY, Player)
         for direction, newPos in successors:
             if newPos in visited:
                 continue
