@@ -33,6 +33,7 @@ class IwillbombyouAgent(Agent):
             return myMap.grids[pos].tool != 2
 
         def __judgeStrong(player):
+            print player.speed, player.bombLimit, player.bombPower
             if player.speed < 9 or player.bombLimit < 5 or player.bombPower < 6:
                 return False
             else:
@@ -67,7 +68,7 @@ class IwillbombyouAgent(Agent):
         coorPos = util.coordToPos(coorX, coorY)
         coorGridX, coorGridY = util.posToGrid(coorPos)
         if not Map.gridInMap(gridX, gridY):
-            move = random.choice(validMoves)
+            move = oppDirection(move)
             distance = Direction.distances[move]
             coorX = player.x + distance[0] * player.speed
             coorY = player.y + distance[1] * player.speed
@@ -78,15 +79,14 @@ class IwillbombyouAgent(Agent):
         else:
             pathLenth = 0
         judgePass = (bombTime - 1.0) * player.speed / util.BASE_INTERVAL - pathLenth * util.grid_dimension
-        print judgePass
         if judgePass < 0:
+            print actions
             if actions:
                 move = actions[0]
-                print actions[0], move
             else:
                 return
 
-        if not state.moveValidForMe(move):
+        if not state.moveValidForMe(move) and bombTime > 0:
             centerX, centerY = util.posToCoord(playerPos)
             player.x = centerX
             player.y = centerY
@@ -96,7 +96,7 @@ class IwillbombyouAgent(Agent):
         newX = gridX + distance[0]
         newY = gridY + distance[1]
         newP = util.gridToPos(newX, newY)
-        if (myMap.wayAroundPos(newP) == 0):
+        if (myMap.wayAroundPos(newP) == 0) and bombTime > 0:
             for d in Direction.ALL:
                 dis = Direction.distances[d]
                 nX = gridX + dis[0]
