@@ -199,7 +199,11 @@ class GameState(object):
             return len(path)
         else:
             return util.map_dimension ** 2
-
+    def findMinBombTime(self):
+        bombTime = 0.0
+        for i, grid in self.game_map.bombsGen():
+            bombTime = max(bombTime, time.time() - grid.bombPutTime)
+        return (Grid.BOMB_DELAY - bombTime)
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself
         player = self.me()

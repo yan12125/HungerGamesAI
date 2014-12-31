@@ -1,7 +1,7 @@
 import random
 import search
 import util
-from direction import Direction
+from direction import oppDirection, Direction
 from .agent import Agent
 from grid import Grid
 from game_map import Map
@@ -39,11 +39,11 @@ class IwillbombyouAgent(Agent):
                 return True
 
         moveLenth = state.tryBombAndRun(playerPos, player.bombPower)
-        bombTime = state.findBombTime(playerPos)
+        bombTime = state.findMinBombTime()
         if  moveLenth != util.map_dimension ** 2 and\
             (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos) or state.bombThing(playerPos, Grid.VWALL))and\
-            bombTime > 0.2:
+            bombTime > 1:
             self.tryPutBomb(state, player)
         if not __judgeStrong(player):
             actions = search.bfs(myMap, playerPos, __findTool, __findMiddleTool, player)
@@ -60,7 +60,6 @@ class IwillbombyouAgent(Agent):
             validMoves.remove(Direction.STOP)
         if not validMoves:
             print('Error: no valid moves')
-            return
 
         distance = Direction.distances[move]
         coorX = player.x + distance[0] * player.speed
@@ -73,47 +72,38 @@ class IwillbombyouAgent(Agent):
             coorX = player.x + distance[0] * player.speed
             coorY = player.y + distance[1] * player.speed
             coorPos = util.coordToPos(coorX, coorY)
-        bombTime1 = state.findBombTime(coorPos)
-        bombTime2 = state.findBombTime(playerPos)
-        bombTime = min(bombTime1, bombTime2)
-        path = search.bfs(myMap, playerPos, __internal_safe, Player = player)
-        if path:
-            pathLenth = len(path)
+        actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
+        if actions:
+            pathLenth = len(actions)
         else:
             pathLenth = 0
-        judgePass = ((bombTime - 0.2) * player.speed / util.BASE_INTERVAL  > pathLenth * util.grid_dimension)
-        if not judgePass:
-
-            actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
+        judgePass = (bombTime - 1.0) * player.speed / util.BASE_INTERVAL - pathLenth * util.grid_dimension
+        print judgePass
+        if judgePass < 0:
             if actions:
                 move = actions[0]
+                print actions[0], move
             else:
                 return
 
         if not state.moveValidForMe(move):
-            distance = Direction.distances[self.lastMove]
-            newX = gridX + distance[0]
-            newY = gridY + distance[1]
-            newP = util.gridToPos(newX, newY)
-            if Map.gridInMap(newX, newY) and myMap.grids[newP].canPass():
-                centerX, centerY = util.posToCoord(playerPos)
-                player.x = centerX
-                player.y = centerY
-            else:
-                move = random.choice(validMoves)
+            centerX, centerY = util.posToCoord(playerPos)
+            player.x = centerX
+            player.y = centerY
+            move = oppDirection(move)
         distance = Direction.distances[move]
-        newX = player.x + distance[0] * player.speed
-        newY = player.y + distance[1] * player.speed
-        newP = util.coordToPos(newX, newY)
+        gridX, gridY = util.coordToGrid(player.x, player.y)
+        newX = gridX + distance[0]
+        newY = gridY + distance[1]
+        newP = util.gridToPos(newX, newY)
         if (myMap.wayAroundPos(newP) == 0):
             for d in Direction.ALL:
                 dis = Direction.distances[d]
-                nX = player.x + dis[0] * player.speed
-                nY = player.y + dis[1] * player.speed
-                nP = util.coordToPos(nX, nY)
+                nX = gridX + dis[0]
+                nY = gridY + dis[1]
+                nP = util.gridToPos(nX, nY)
                 if myMap.wayAroundPos(nP) > 0:
                     move = d
                     break;
-
         self.lastMove = move
         self.goMove(player, move)
