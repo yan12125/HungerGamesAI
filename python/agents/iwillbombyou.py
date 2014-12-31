@@ -79,7 +79,7 @@ class IwillbombyouAgent(Agent):
         bombTime2 = state.findBombTime(playerPos)
         bombTime = min(bombTime1, bombTime2)
         judgePass = ((bombTime - 0.2) * player.speed / util.BASE_INTERVAL  > moveLenth * util.grid_dimension)
-        if not judgePass or self.runFlag or (myMap.wayAroundPos(playerPos) < 3 and not player.penetrate):
+        if not judgePass or self.runFlag != 0 or (myMap.wayAroundPos(playerPos) < 3 and not player.penetrate):
 
             if not judgePass:
                 self.runFlag = 2
