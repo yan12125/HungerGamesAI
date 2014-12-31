@@ -80,6 +80,10 @@
         var servers = [];
         var isObserver = false;
 
+        if (serversElm.length > 0) {
+          serversElm[0].dataset.host = location.host;
+        }
+
         for (var i = 0, len = serversElm.length; i < len; i++) {
           servers.push(serversElm[i].dataset.host);
 
