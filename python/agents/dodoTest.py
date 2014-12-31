@@ -85,6 +85,7 @@ class DodotestAgent(Agent):
         self.goMove(player,legalMoves[chosenIndex])
         if scores[chosenIndex][1]==True:
           self.tryPutBomb(state, player)
+          return 
         self.lastMove=legalMoves[chosenIndex]
 #        print legalMoves[chosenIndex]
         return 
