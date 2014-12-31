@@ -60,12 +60,12 @@ class Map(object):
         grid = self.grids[pos]
         grid.grid_type = Grid.BOMB
         grid.bombPower = power
+        grid.bombCanPass = True
         grid.bombPutTime = time.time()
         self.invalidateSafeMap()
         self.dumpGrids()
 
     def bombing(self, gridX, gridY):
-        self.grids[util.gridToPos(gridX, gridY)].willBeBomb = False
         self.invalidateSafeMap()
 
     def gridBombed(self, gridX, gridY):
@@ -106,12 +106,13 @@ class Map(object):
         ]
         return [(x+distance[0], y+distance[1]) for distance in corners]
 
-    def near(self, x, y, passBomb=False, passWall=False, half_side=NEAR_ERR):
+    def near(self, x, y, passWall=False, half_side=NEAR_ERR):
         for newX, newY in self.eight_corners(x, y, half_side):
             if not self.coordInMap(newX, newY):
                 return True
-            grid_type = self.grids[util.coordToPos(newX, newY)].grid_type
-            if grid_type == 'bomb' and passBomb:
+            grid = self.grids[util.coordToPos(newX, newY)]
+            grid_type = grid.grid_type
+            if grid_type == Grid.BOMB and grid.bombCanPass:
                 continue
             if (grid_type == 'nvwall' or grid_type == 'vwall') and passWall:
                 continue

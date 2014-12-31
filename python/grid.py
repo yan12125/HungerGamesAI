@@ -14,9 +14,9 @@ class Grid(object):
     def __init__(self):
         self.grid_type = None
         self.tool = None
-        self.willBeBomb = False
         self.bombPower = None
         self.bombPutTime = None
+        self.bombCanPass = False
 
     def __str__(self):
         if self.grid_type == 'tool':

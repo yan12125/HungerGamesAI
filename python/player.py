@@ -25,9 +25,6 @@ class Player(object):
         self.penetrate = False  # whether able to bypass walls
         self.god_mod = False  # not killed by bombs
 
-        # Auxiliary attributes
-        self.onBomb = False  # True if standing on a newly put bomb
-
     def isMe(self):
         return self.player_id == Player.thisPlayer_id
 
@@ -83,7 +80,6 @@ class Player(object):
         elif tooltype == 5:
             print("Player %s is penetrate" % self.player_id)
             self.penetrate = True
-            self.onBomb = True
         elif tooltype == 6:
             pass
 

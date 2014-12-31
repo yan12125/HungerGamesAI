@@ -168,7 +168,6 @@ class GameState(object):
         safeMap = deepcopy(self.game_map.safeMap())
         gameMap = deepcopy(self.game_map)
         gameMap.grids[pos].grid_type = Grid.BOMB
-        gameMap.grids[pos].willBeBomb = True
         gameMap.grids[pos].bombPower = power
         gameMap.grids[pos].bombPutTime = time.time()
 
@@ -204,31 +203,37 @@ class GameState(object):
         for i, grid in self.game_map.bombsGen():
             bombTime = max(bombTime, time.time() - grid.bombPutTime)
         return (Grid.BOMB_DELAY - bombTime)
+
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself
         player = self.me()
-        if self.game_map.grids[pos].grid_type != Grid.BOMB:
+        self.checkLeavePlayer(player, pos)
+
+    def checkLeavePlayer(self, player, pos):
+        gridAtPos = self.game_map.grids[pos]
+
+        if gridAtPos.grid_type != Grid.BOMB:
             # XXX I don't know why bombs vanished
             print('Bomb at %s vanished' % util.gridStr(pos))
             return
+
         playerPos = util.coordToPos(player.x, player.y)
         if self.game_map.nearPos(player.x, player.y, pos):
             # print("I am on a bomb")
-            player.onBomb = True
+            gridAtPos.canPassBomb = True
             util.loop.add_timed_task(util.BASE_INTERVAL, self.checkLeave, pos)
         elif self.game_map.grids[playerPos] != Grid.BOMB and player.penetrate == False:
-            print("I exit a bomb")
-            player.onBomb = False
+            print("I exit the bomb at %s" % util.gridStr(pos))
+            gridAtPos.canPassBomb = False
 
     def checkLeaveWall(self):
         player = self.me()
-        if self.game_map.near(player.x, player.y, passBomb=player.onBomb):
+        if self.game_map.near(player.x, player.y):
             print("Still in some wall")
             util.loop.add_timed_task(util.BASE_INTERVAL, self.checkLeaveWall)
         else:
             print("Dropping UFO")
             player.penetrate = False
-            player.onBomb = False
             util.packet_queue.put({
                 'event': 'ufo_removal',
                 'playerid': Player.thisPlayer_id
@@ -239,7 +244,7 @@ class GameState(object):
         move_distance = Direction.distances[move]
         newX = p.x + move_distance[0] * p.speed
         newY = p.y + move_distance[1] * p.speed
-        return not self.game_map.near(newX, newY, p.onBomb, p.penetrate)
+        return not self.game_map.near(newX, newY, p.penetrate)
 
     def moveValidForMe(self, move):
         return self.moveValidForPlayer(Player.thisPlayer_id, move)
@@ -331,7 +336,7 @@ class GameState(object):
                         GridPosXY[1]+distance[1])
       else: newGridPosXY=GridPosXY
       newCorXY =  util.gridToCoord(newGridPosXY[0],newGridPosXY[1])
-      if state.game_map.near(newCorXY[0],newCorXY[1],player.onBomb, player.penetrate):
+      if state.game_map.near(newCorXY[0],newCorXY[1], player.penetrate):
          return state
       newGridPos=util.gridToPos(newGridPosXY[0],newGridPosXY[1])
       newGrid = state.game_map.grids[newGridPos]
@@ -339,7 +344,6 @@ class GameState(object):
 ###Need TO Check more###############
 ##Eat Bomb ##
       if bombPut== True : 
-        grid.willBeBomb = True
         state.game_map.bombPut(GridPosXY[0],GridPosXY[1],player.bombPower)
         player.putBomb()
 #        for playerItem in state.players:
@@ -372,17 +376,3 @@ class GameState(object):
     ## The following is the private method, you should  ##
     ## not call it from the outside.                    ##
     ######################################################
-    def checkLeavePlayer(self, player,pos):
-        if self.game_map.grids[pos].grid_type != Grid.BOMB:
-            # XXX I don't know why bombs vanished
-#            print('Bomb at %s vanished' % util.gridStr(pos))
-            return
-
-        if self.game_map.nearPos(player.x, player.y, pos):
-            # print("I am on a bomb")
-            player.onBomb = True
-            util.loop.add_timed_task(util.BASE_INTERVAL, self.checkLeave, player, pos)
-        else:
-            print("I exit a bomb")
-            player.onBomb = False
-

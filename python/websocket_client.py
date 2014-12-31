@@ -106,7 +106,8 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
         if self.stream:
             self.send(json.dumps(data))
         else:
-            print("Error: stream closed")
+            print("Error: stream closed. Failed to send the following data: ")
+            print(data)
 
     def opened(self):
         self.sendJson({

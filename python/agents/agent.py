@@ -2,6 +2,7 @@ import util
 from direction import Direction
 from grid import Grid
 
+
 class Agent(object):
     def __init__(self):
         self.lastMove = Direction.STOP
@@ -16,13 +17,12 @@ class Agent(object):
         bombX, bombY = util.coordToGrid(player.x, player.y)
         bombPos = util.gridToPos(bombX, bombY)
         grid = state.game_map.grids[bombPos]
-        if grid.grid_type is Grid.BOMB or grid.willBeBomb:
+        if grid.grid_type is Grid.BOMB:
             return False
 
         self.lastState = self.whichState
         self.whichState = 1
         self.lastPos = bombPos
-        grid.willBeBomb = True
 
         print("Put a bomb at %s" % util.gridStr(bombPos))
         player.bombCount += 1

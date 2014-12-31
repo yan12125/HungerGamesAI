@@ -19,7 +19,7 @@ def find_successors(game_map, gridX, gridY, Player=Player(-1, "test")):
         newPos = util.gridToPos(newX, newY)
         if not Player.penetrate and not game_map.grids[newPos].canPass():
             continue
-        elif game_map.gridIs(newPos, Grid.BOMB) and not Player.onBomb and not Player.penetrate:
+        elif game_map.gridIs(newPos, Grid.BOMB) and not game_map.grids[newPos].bombCanPass and not Player.penetrate:
             continue
 
         successors.append((direction, newPos))
