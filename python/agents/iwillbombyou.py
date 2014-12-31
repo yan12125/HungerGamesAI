@@ -10,7 +10,6 @@ class IwillbombyouAgent(Agent):
     def __init__(self):
         super(IwillbombyouAgent, self).__init__()
         self.lastMove = Direction.UP
-        self.runFlag = 0
 
     def once(self, state):
         if not util.packet_queue.empty():
@@ -41,10 +40,10 @@ class IwillbombyouAgent(Agent):
 
         moveLenth = state.tryBombAndRun(playerPos, player.bombPower)
         bombTime = state.findBombTime(playerPos)
-        if  moveLenth != 0 and\
+        if  moveLenth != util.map_dimension ** 2 and\
             (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos) or state.bombThing(playerPos, Grid.VWALL))and\
-            bombTime > 0.2 and myMap.wayAroundPos(playerPos) > 2:
+            bombTime > 0.2 and myMap.wayAroundPos(playerPos) > 3:
             self.tryPutBomb(state, player)
 
         if not __judgeStrong(player):
@@ -79,25 +78,13 @@ class IwillbombyouAgent(Agent):
         bombTime2 = state.findBombTime(playerPos)
         bombTime = min(bombTime1, bombTime2)
         judgePass = ((bombTime - 0.2) * player.speed / util.BASE_INTERVAL  > moveLenth * util.grid_dimension)
-        if not judgePass or self.runFlag != 0 or (myMap.wayAroundPos(playerPos) < 3 and not player.penetrate):
+        if not judgePass:
 
-            if not judgePass:
-                self.runFlag = 2
-                actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
-            elif myMap.wayAroundPos(playerPos) < 3:
-                self.runFlag = 1
-                actions = search.bfs(myMap, playerPos, __internal_safe, Player = player, N = 2)
+            actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
             if actions:
                 move = actions[0]
-            elif self.runFlag == 2:
-                if safe_map[gridX][gridY]:
-                    print "lala"
-                    return
-
-        if self.runFlag == 1 and myMap.wayAroundPos(playerPos) > 2:
-            self.runFlag = 0
-        elif self.runFlag == 2 and myMap.safeMapAround(playerPos) and bombTime > 0.2:
-            self.runFlag = 0
+            else:
+                return
 
         if not state.moveValidForMe(move):
             distance = Direction.distances[self.lastMove]

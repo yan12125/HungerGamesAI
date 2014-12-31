@@ -194,11 +194,11 @@ class GameState(object):
                     if Map.gridInMap(newX, newY) and gameMap.gridIs(newP, Grid.NVWALL):
                         break
                     __markAsUnsafe(newX, newY)
-        path = search.bfs(gameMap, pos, __internal_safe)
+        path = search.bfs(gameMap, pos, __internal_safe, Player = self.me())
         if path:
             return len(search.bfs(gameMap, pos, __internal_safe))
         else:
-            return 0
+            return util.map_dimension ** 2
 
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself
