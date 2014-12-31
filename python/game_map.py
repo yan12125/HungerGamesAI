@@ -185,7 +185,7 @@ class Map(object):
                         newX = gridX + distance[0] * (i+1)
                         newY = gridY + distance[1] * (i+1)
                         newP = util.gridToPos(newX, newY)
-                        if Map.gridInMap(newX, newY) and not self.grids[newP].canPass():
+                        if Map.gridInMap(newX, newY) and self.gridIs(newP, Grid.NVWALL):
                             break
                         __markAsUnsafe(newX, newY)
 

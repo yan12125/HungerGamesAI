@@ -115,7 +115,7 @@ class GameState(object):
                     newX = gridX + distance[0] * (i+1)
                     newY = gridY + distance[1] * (i+1)
                     newP = util.gridToPos(newX, newY)
-                    if Map.gridInMap(newX, newY) and not self.game_map.grids[newP].canPass():
+                    if Map.gridInMap(newX, newY) and self.game_map.gridIs(newP, Grid.NVWALL):
                         break
                     __markAsBomb(newX, newY)
         for play_id, player in self.players.items():
@@ -191,7 +191,7 @@ class GameState(object):
                     newX = gridX + distance[0] * (i+1)
                     newY = gridY + distance[1] * (i+1)
                     newP = util.gridToPos(newX, newY)
-                    if Map.gridInMap(newX, newY) and not gameMap.grids[newP].canPass():
+                    if Map.gridInMap(newX, newY) and gameMap.gridIs(newP, Grid.NVWALL):
                         break
                     __markAsUnsafe(newX, newY)
         path = search.bfs(gameMap, pos, __internal_safe)

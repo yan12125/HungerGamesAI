@@ -91,6 +91,7 @@ class IwillbombyouAgent(Agent):
                 move = actions[0]
             elif self.runFlag == 2:
                 if safe_map[gridX][gridY]:
+                    print "lala"
                     return
 
         if self.runFlag == 1 and myMap.wayAroundPos(playerPos) > 2:
