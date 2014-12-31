@@ -195,14 +195,50 @@ class GameState(object):
                     __markAsUnsafe(newX, newY)
         path = search.bfs(gameMap, pos, __internal_safe, Player = self.me())
         if path:
-            return len(path)
+            return (len(path), path)
         else:
-            return util.map_dimension ** 2
+            return (util.map_dimension ** 2, path)
+
     def findMinBombTime(self):
         bombTime = 0.0
         for i, grid in self.game_map.bombsGen():
             bombTime = max(bombTime, time.time() - grid.bombPutTime)
         return (Grid.BOMB_DELAY - bombTime)
+
+    def tryBombConsiderOthers(self, criteria):
+        safeMap = deepcopy(self.game_map.safeMap())
+        gameMap = deepcopy(self.game_map)
+
+        def __markAsUnsafe(gridX, gridY):
+            if not Map.gridInMap(gridX, gridY):
+                return
+            safeMap[gridX][gridY] = False
+
+        def __internal_safe(pos):
+            gridX, gridY = util.posToGrid(pos)
+            return safeMap[gridX][gridY]
+
+        for player_id, player in self.players.items():
+            gridX, gridY = util.coordToGrid(player.x, player.y)
+            pos = util.coordToPos(player.x, player.y)
+            power = player.bombPower
+            for direction in Direction.ALL:
+                if direction == Direction.STOP:
+                    __markAsUnsafe(gridX, gridY)
+                else:
+                    for i in range(0, power):
+                        distance = Direction.distances[direction]
+                        newX = gridX + distance[0] * (i+1)
+                        newY = gridY + distance[1] * (i+1)
+                        newP = util.gridToPos(newX, newY)
+                        if Map.gridInMap(newX, newY) and gameMap.gridIs(newP, Grid.NVWALL):
+                            break
+                        __markAsUnsafe(newX, newY)
+        path = search.bfs(gameMap, pos, __internal_safe, Player = self.me())
+        if path:
+            return (len(path), path)
+        else:
+            return (util.map_dimension ** 2, path)
 
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself

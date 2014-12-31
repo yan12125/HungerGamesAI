@@ -33,18 +33,24 @@ class IwillbombyouAgent(Agent):
             return myMap.grids[pos].tool != 2
 
         def __judgeStrong(player):
-            print((player.speed, player.bombLimit, player.bombPower))
             if player.speed < 9 or player.bombLimit < 5 or player.bombPower < 6:
                 return False
             else:
                 return True
+ 
+        def __meCriteria(p):
+            return p == player
+        def __othersCriteria(p):
+            return p != player
+        def __trueCriteria(p):
+            return True
 
-        moveLenth = state.tryBombAndRun(playerPos, player.bombPower)
+        moveLenth = state.tryBombConsiderOthers(__trueCriteria)
         bombTime = state.findMinBombTime()
-        if  moveLenth != util.map_dimension ** 2 and\
+        if  moveLenth[0] != util.map_dimension ** 2 and\
             (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos) or state.bombThing(playerPos, Grid.VWALL))and\
-            bombTime > 1:
+            bombTime > 0.5:
             self.tryPutBomb(state, player)
         if not __judgeStrong(player):
             actions = search.bfs(myMap, playerPos, __findTool, __findMiddleTool, player)
@@ -55,42 +61,34 @@ class IwillbombyouAgent(Agent):
             if actions:
                 move = actions[0]
 
-        validMoves = state.validMovesForMe()
-        if Direction.STOP in validMoves:
-            # Not always true. Eg., on a newly put bomb
-            validMoves.remove(Direction.STOP)
-        if not validMoves:
-            print('Error: no valid moves')
-
-        distance = Direction.distances[move]
-        coorX = player.x + distance[0] * player.speed
-        coorY = player.y + distance[1] * player.speed
-        coorPos = util.coordToPos(coorX, coorY)
-        coorGridX, coorGridY = util.posToGrid(coorPos)
-        if not Map.gridInMap(gridX, gridY):
-            move = oppDirection(move)
-            distance = Direction.distances[move]
-            coorX = player.x + distance[0] * player.speed
-            coorY = player.y + distance[1] * player.speed
-            coorPos = util.coordToPos(coorX, coorY)
-        actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
-        if actions:
-            pathLenth = len(actions)
-        else:
-            pathLenth = 0
-        judgePass = (bombTime - 1.0) * player.speed / util.BASE_INTERVAL - pathLenth * util.grid_dimension
+        judgePass = (bombTime - 0.5) * player.speed / util.BASE_INTERVAL - moveLenth[0] * util.grid_dimension
         if judgePass < 0:
-            print(actions)
-            if actions:
-                move = actions[0]
+            if moveLenth[0] == util.map_dimension ** 2:
+                actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
+                if actions:
+                    move = actions[0]
+                else:
+                    return
             else:
-                return
+                actions = state.tryBombConsiderOthers(__othersCriteria)[1]
+                move = actions[0]
+
+        print("Speed: %s, Limit: %s, Count: %s, Power: %s"\
+        %(player.speed, player.bombLimit, player.bombCount, player.bombPower))
+        print("JudgePass: %s, Action: %s, Move: %s" %(judgePass, actions, move))
 
         if not state.moveValidForMe(move) and judgePass > 0:
             centerX, centerY = util.posToCoord(playerPos)
             player.x = centerX
             player.y = centerY
-            move = oppDirection(move)
+            validMoves = state.validMovesForMe()
+            if Direction.STOP in validMoves:
+                # Not always true. Eg., on a newly put bomb
+                validMoves.remove(Direction.STOP)
+            if not validMoves:
+                print('Error: no valid moves')
+                return
+            move = random.choice(validMoves)
         distance = Direction.distances[move]
         gridX, gridY = util.coordToGrid(player.x, player.y)
         newX = gridX + distance[0]
@@ -105,5 +103,6 @@ class IwillbombyouAgent(Agent):
                 if myMap.wayAroundPos(nP) > 0:
                     move = d
                     break;
+
         self.lastMove = move
         self.goMove(player, move)
