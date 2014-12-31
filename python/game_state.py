@@ -164,41 +164,6 @@ class GameState(object):
                         break
         return (Grid.BOMB_DELAY - bombTime)
 
-    def tryBombAndRun(self, pos, power):
-        safeMap = deepcopy(self.game_map.safeMap())
-        gameMap = deepcopy(self.game_map)
-        gameMap.grids[pos].grid_type = Grid.BOMB
-        gameMap.grids[pos].bombPower = power
-        gameMap.grids[pos].bombPutTime = time.time()
-
-        def __markAsUnsafe(gridX, gridY):
-            if not Map.gridInMap(gridX, gridY):
-                return
-            safeMap[gridX][gridY] = False
-
-        def __internal_safe(pos):
-            gridX, gridY = util.posToGrid(pos)
-            return safeMap[gridX][gridY]
-
-        gridX, gridY = util.posToGrid(pos)
-        for direction in Direction.ALL:
-            if direction == Direction.STOP:
-                __markAsUnsafe(gridX, gridY)
-            else:
-                for i in range(0, power):
-                    distance = Direction.distances[direction]
-                    newX = gridX + distance[0] * (i+1)
-                    newY = gridY + distance[1] * (i+1)
-                    newP = util.gridToPos(newX, newY)
-                    if Map.gridInMap(newX, newY) and gameMap.gridIs(newP, Grid.NVWALL):
-                        break
-                    __markAsUnsafe(newX, newY)
-        path = search.bfs(gameMap, pos, __internal_safe, Player = self.me())
-        if path:
-            return (len(path), path)
-        else:
-            return (util.map_dimension ** 2, path)
-
     def findMinBombTime(self):
         bombTime = 0.0
         for i, grid in self.game_map.bombsGen():
@@ -206,8 +171,9 @@ class GameState(object):
         return (Grid.BOMB_DELAY - bombTime)
 
     def tryBombConsiderOthers(self, criteria):
-        safeMap = deepcopy(self.game_map.safeMap())
+        safeMap = util.linearGridToMap([True for i in util.grid_gen])
         gameMap = deepcopy(self.game_map)
+        bombs = list(self.game_map.bombsGen())
 
         def __markAsUnsafe(gridX, gridY):
             if not Map.gridInMap(gridX, gridY):
@@ -219,14 +185,23 @@ class GameState(object):
             return safeMap[gridX][gridY]
 
         for player_id, player in self.players.items():
-            gridX, gridY = util.coordToGrid(player.x, player.y)
-            pos = util.coordToPos(player.x, player.y)
-            power = player.bombPower
+            if criteria(player):
+                gridX, gridY = util.coordToGrid(player.x, player.y)
+                pos = util.coordToPos(player.x, player.y)
+                grid = Grid()
+                grid.bombPower = player.bombPower
+                grid.grid_type = grid.BOMB
+                grid.bombPutTime = time.time()
+                bombs.append((pos, grid))
+                gameMap.grids[pos] = grid
+
+        for i, grid in bombs:
+            gridX, gridY = util.posToGrid(i)
             for direction in Direction.ALL:
                 if direction == Direction.STOP:
                     __markAsUnsafe(gridX, gridY)
                 else:
-                    for i in range(0, power):
+                    for i in range(0, grid.bombPower):
                         distance = Direction.distances[direction]
                         newX = gridX + distance[0] * (i+1)
                         newY = gridY + distance[1] * (i+1)
@@ -234,7 +209,10 @@ class GameState(object):
                         if Map.gridInMap(newX, newY) and gameMap.gridIs(newP, Grid.NVWALL):
                             break
                         __markAsUnsafe(newX, newY)
-        path = search.bfs(gameMap, pos, __internal_safe, Player = self.me())
+
+        me = self.me()
+        startPos = util.coordToPos(me.x, me.y)
+        path = search.bfs(gameMap, startPos, __internal_safe, Player = me)
         if path:
             return (len(path), path)
         else:

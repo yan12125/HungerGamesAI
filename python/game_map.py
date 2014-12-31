@@ -4,6 +4,7 @@ from grid import Grid
 import math
 import time  # for bomb put time
 from direction import Direction
+from player import Player
 
 NEAR_ERR = 25  # half of the player width
 
@@ -221,7 +222,7 @@ class Map(object):
         return MoveList
 
 
-    def wayAroundPos(self, pos):
+    def wayAroundPos(self, pos, player = Player(-1, "test")):
         safe_map = self.safeMap()
         gridX, gridY = util.posToGrid(pos)
         plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1)]
@@ -230,7 +231,8 @@ class Map(object):
         wayCount = 0
         for x, y in pointAroundMe:
             position = util.gridToPos(x, y)
-            if safe_map[x][y] and self.grids[position].canPass() and not self.gridIs(position, Grid.BOMB):
+            if safe_map[x][y] and\
+               (self.grids[position].canPass() and not self.gridIs(position, Grid.BOMB) or player.penetrate):
                 wayCount += 1
         return wayCount
 

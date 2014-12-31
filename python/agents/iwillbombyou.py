@@ -37,7 +37,7 @@ class IwillbombyouAgent(Agent):
                 return False
             else:
                 return True
- 
+
         def __meCriteria(p):
             return p == player
         def __othersCriteria(p):
@@ -47,10 +47,15 @@ class IwillbombyouAgent(Agent):
 
         moveLenth = state.tryBombConsiderOthers(__trueCriteria)
         bombTime = state.findMinBombTime()
+        if player.bombCount > 4:
+            bombTime -= 1.0
+        else:
+            bombTime -=0.5
+        judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth[0] * util.grid_dimension
         if  moveLenth[0] != util.map_dimension ** 2 and\
             (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos) or state.bombThing(playerPos, Grid.VWALL))and\
-            bombTime > 0.5:
+            judgePass > 0:
             self.tryPutBomb(state, player)
         if not __judgeStrong(player):
             actions = search.bfs(myMap, playerPos, __findTool, __findMiddleTool, player)
@@ -61,17 +66,16 @@ class IwillbombyouAgent(Agent):
             if actions:
                 move = actions[0]
 
-        judgePass = (bombTime - 0.5) * player.speed / util.BASE_INTERVAL - moveLenth[0] * util.grid_dimension
         if judgePass < 0:
             if moveLenth[0] == util.map_dimension ** 2:
                 actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
-                if actions:
-                    move = actions[0]
-                else:
-                    return
             else:
                 actions = state.tryBombConsiderOthers(__othersCriteria)[1]
+
+            if actions:
                 move = actions[0]
+            else:
+                return
 
         print("Speed: %s, Limit: %s, Count: %s, Power: %s"\
         %(player.speed, player.bombLimit, player.bombCount, player.bombPower))
@@ -94,7 +98,7 @@ class IwillbombyouAgent(Agent):
         newX = gridX + distance[0]
         newY = gridY + distance[1]
         newP = util.gridToPos(newX, newY)
-        if (myMap.wayAroundPos(newP) == 0) and judgePass > 0:
+        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
             for d in Direction.ALL:
                 dis = Direction.distances[d]
                 nX = gridX + dis[0]
