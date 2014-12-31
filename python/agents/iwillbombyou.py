@@ -43,9 +43,8 @@ class IwillbombyouAgent(Agent):
         if  moveLenth != util.map_dimension ** 2 and\
             (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos) or state.bombThing(playerPos, Grid.VWALL))and\
-            bombTime > 0.2 and myMap.wayAroundPos(playerPos) > 3:
+            bombTime > 0.2:
             self.tryPutBomb(state, player)
-
         if not __judgeStrong(player):
             actions = search.bfs(myMap, playerPos, __findTool, __findMiddleTool, player)
             if actions:
@@ -77,7 +76,12 @@ class IwillbombyouAgent(Agent):
         bombTime1 = state.findBombTime(coorPos)
         bombTime2 = state.findBombTime(playerPos)
         bombTime = min(bombTime1, bombTime2)
-        judgePass = ((bombTime - 0.2) * player.speed / util.BASE_INTERVAL  > moveLenth * util.grid_dimension)
+        path = search.bfs(myMap, playerPos, __internal_safe, Player = player)
+        if path:
+            pathLenth = len(path)
+        else:
+            pathLenth = 0
+        judgePass = ((bombTime - 0.2) * player.speed / util.BASE_INTERVAL  > pathLenth * util.grid_dimension)
         if not judgePass:
 
             actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
@@ -97,5 +101,19 @@ class IwillbombyouAgent(Agent):
                 player.y = centerY
             else:
                 move = random.choice(validMoves)
+        distance = Direction.distances[move]
+        newX = player.x + distance[0] * player.speed
+        newY = player.y + distance[1] * player.speed
+        newP = util.coordToPos(newX, newY)
+        if (myMap.wayAroundPos(newP) == 0):
+            for d in Direction.ALL:
+                dis = Direction.distances[d]
+                nX = player.x + dis[0] * player.speed
+                nY = player.y + dis[1] * player.speed
+                nP = util.coordToPos(nX, nY)
+                if myMap.wayAroundPos(nP) > 0:
+                    move = d
+                    break;
+
         self.lastMove = move
         self.goMove(player, move)

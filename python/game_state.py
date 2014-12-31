@@ -196,7 +196,7 @@ class GameState(object):
                     __markAsUnsafe(newX, newY)
         path = search.bfs(gameMap, pos, __internal_safe, Player = self.me())
         if path:
-            return len(search.bfs(gameMap, pos, __internal_safe))
+            return len(path)
         else:
             return util.map_dimension ** 2
 
