@@ -51,6 +51,8 @@ app.get('/test', function(req, res) {
 var gameStarted = false;
 var __gameStarting = false; // 記錄是否已經輸入過 go 了
 
+var toolLoop = null;
+
 app.get('/start_game', function (req, res) {
   if(!wsConnections.length) {
     res.send('No clients yet');
@@ -72,7 +74,6 @@ app.get('/start_game', function (req, res) {
     setTimeout(function() {
       gameStarted = true;
       __gameStarting = false;
-      toolappear();
       console.log('[Notice] Hunger Game has been successfully started.');
     }, 3000);
     res.send('Starting game ok');
@@ -116,9 +117,10 @@ wsServer.on("request",function(request){
 var images = ['img/red.png', 'img/orange.png','img/yellow.png','img/green.png','img/blue.png','img/purple.png'];
 
 var grids = new Array();
+var wsConnections = [];
+
 iniMap();
 
-var wsConnections = [];
 getConnectionById = function (uuid) {
   for (var i = 0, len = wsConnections.length; i < len; i += 1)
     if (wsConnections[i] && wsConnections[i].playerInfo.playerid === uuid) {
@@ -228,10 +230,17 @@ function newPlayer(connection) {
           playerInfoList.push(wsConnections[i].playerInfo);
         }
       }
-      var _pos = randIniPos(true);
+
+      connection.playerInfo.isObserver = obj.isObserver;
+
+      var _pos = -1;
+      if (_pos === -1) {
+        _pos = randIniPos(true);
+      }
       if (_pos === -1) {
         throw "Failed to find a position for a new player";
       }
+
       var iniPos = coordCalc(_pos);
       connection.playerInfo.x = iniPos.x;
       connection.playerInfo.y = iniPos.y;
@@ -297,6 +306,10 @@ function iniMap() {
     if (wall.raw[i] === 'empty') continue;
     grids[i].empty = false;
     grids[i].type = wall.raw[i];
+  }
+  if(!toolLoop) {
+    toolappear();
+    toolLoop = 1;
   }
   return;
 }
@@ -379,6 +392,9 @@ function randTool() {
 }
 
 function toolappear_impl(getgrid) {
+  if(!wsConnections.length) {
+    return;
+  }
   var toolty = randTool();
   if (grids[getgrid].empty) {
     grids[getgrid].empty = true;
@@ -400,7 +416,7 @@ function toolappear() {
     return;
   }
   */
-  setTimeout(toolappear,Math.floor(Math.random() * 5000)+30000);
+  setTimeout(toolappear,Math.floor(Math.random() * 3000)+5000);
   var getgrid = randIniPos(false);
   if(getgrid !== -1) {
     toolappear_impl(getgrid);
@@ -414,8 +430,9 @@ function toolappear() {
 function player_bombed(playerid) {
   console.log('Player ' + playerid + ' was bombed');
   var conn = getConnectionById(playerid);
+  var playerInfo = conn.playerInfo;
 
-  if (conn.playerInfo.dead || conn.playerInfo.disconnected) {
+  if (playerInfo.dead || playerInfo.disconnected || playerInfo.isObserver) {
     return;
   }
   sendObjToAllClient({

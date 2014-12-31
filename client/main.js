@@ -401,7 +401,7 @@ function sendObjToServer(obj) {
     ws && ws.send(JSON.stringify(obj));
 }
 
-function webSocketInit() {
+function webSocketInit(isObserver) {
 
     if (ws) return;
 
@@ -441,7 +441,8 @@ function webSocketInit() {
         // 開啓連線以後，傳送自己的暱稱和隊伍給 server 知道
         sendObjToServer({
             event: 'update_player_info',
-            name: thisPlayer.name
+            name: thisPlayer.name, 
+            isObserver: isObserver
         });
         document.getElementById('buttondiv').innerHTML='';
     };

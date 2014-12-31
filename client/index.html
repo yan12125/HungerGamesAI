@@ -54,7 +54,7 @@
       #timer-alive-wrap { display: none; }
       #timer-ufo-wrap { display: none; }
 
-      #checklist { position: absolute; width: 160px; }
+      #checklist { width: 160px; }
       #checklist > div { padding: 6px; color: red; margin: 8px 0 8px 16px; text-decoration: line-through; }
       #checklist > div.ok { cursor: pointer; color: green; text-decoration: none; font-weight: bold; }
       #checklist > div.ok:hover { background: #FDFFE0; }
@@ -70,11 +70,15 @@
     <div id="checklist">
       Localhost: <div data-host="localhost:3000">單人測試頻道</div>
     </div>
+    <form>
+        <input type="checkbox" id="observer_mode">Observer mode
+    </form>
     <script>
       (function() {
         var serversShowElm = document.getElementById('checklist');
         var serversElm = document.querySelectorAll('#checklist > div');
         var servers = [];
+        var isObserver = false;
 
         for (var i = 0, len = serversElm.length; i < len; i++) {
           servers.push(serversElm[i].dataset.host);
@@ -94,7 +98,7 @@
                 if (!thisPlayer.name || thisPlayer.name === default_name) return;
 
                 // console.log('嘗試建立 WebSocket 連線');
-                webSocketInit();
+                webSocketInit(isObserver);
               }
             });
           })(i, serversElm[i]);
@@ -117,6 +121,11 @@
           var xhr = new XMLHttpRequest();
           xhr.open('GET', '/start_game', false);
           xhr.send();
+        });
+        var observerBtn = document.getElementById('observer_mode');
+        observerBtn.checked = false;
+        observerBtn.addEventListener('click', function (e) {
+          isObserver = this.checked;
         });
       })();
     </script>
