@@ -8,8 +8,11 @@ var express = require('express');
 var commander = require('commander');
 var WebSocketServer = require('websocket').server;
 
+var map = require('./map.js');
+
 commander
 .option('-p, --port <port>', 'A port for HTTP/WebSocket ', parseInt)
+.option('-m, --map <map>', 'Map file to use')
 .parse(process.argv);
 
 
@@ -17,6 +20,9 @@ commander
 * Constants
 */
 var WEB_SERVER_PORT = commander.port || 3000;
+var MAP_FILE = commander.map || 'patrit14';
+
+var map_dimension = 13;
 
 
 /**
@@ -50,8 +56,6 @@ app.get('/test', function(req, res) {
 */
 var gameStarted = false;
 var __gameStarting = false; // 記錄是否已經輸入過 go 了
-
-var toolLoop = null;
 
 app.get('/start_game', function (req, res) {
   if(!wsConnections.length) {
@@ -116,10 +120,11 @@ wsServer.on("request",function(request){
 */
 var images = ['img/red.png', 'img/orange.png','img/yellow.png','img/green.png','img/blue.png','img/purple.png'];
 
-var grids = new Array();
 var wsConnections = [];
 
-iniMap();
+map.iniMap(MAP_FILE);
+
+toolappear();
 
 getConnectionById = function (uuid) {
   for (var i = 0, len = wsConnections.length; i < len; i += 1)
@@ -160,7 +165,7 @@ function newPlayer(connection) {
   }, connection);
   sendObjToClient({
     event: 'map_initial',
-    grids: grids
+    grids: map.grids
   }, connection);
   if ( gameStarted ) {
     sendObjToClient({
@@ -187,7 +192,7 @@ function newPlayer(connection) {
       }
     }
     if(howManyPlayers() <= 0) {
-      iniMap();
+      map.iniMap(MAP_FILE);
       // dicsonnect all clients with message 'game_end'
       //gameStarted = false;
       disconnectAll('game_end');
@@ -294,38 +299,18 @@ function disconnectAll(desc) {
   }
 }
 
-function iniMap() {
-  console.log('[Notice] Initializing the map...');
-  var wall = require('./wall.js');
-  for (var i = 0; i < 169; i++) {
-    grids[i] = {};
-    grids[i].empty = true;
-    grids[i].type = 'empty'; //1.tool 2.bomb 3.vwall 4.nvwall 5.empty
-  }
-  for (var i = 0; i < 169; i++) {
-    if (wall.raw[i] === 'empty') continue;
-    grids[i].empty = false;
-    grids[i].type = wall.raw[i];
-  }
-  if(!toolLoop) {
-    toolappear();
-    toolLoop = 1;
-  }
-  return;
-}
-
 function randIniPos(allowOnTool) {
   var test = Math.floor(Math.random() * 169);
   var round = 0;
   var toolList = [];
-  while (grids[test].type != 'empty') {
+  while (map.grids[test].type != 'empty') {
     test = Math.floor(Math.random() * 169);
     round++;
     if (round > 500) {
       test = Math.floor(Math.random() * 169);
       for(var i=0;i<169;i++) {
         var idx = (test+i)%169;
-        var grid_type = grids[idx].type;
+        var grid_type = map.grids[idx].type;
         if(grid_type === 'empty') {
           return idx;
         } else if (grid_type === 'tool') {
@@ -361,16 +346,16 @@ function sendObjToClient(obj, playerConn) {
 
 function checkEatTools(playerInfo) {
   var pos = gridCalc(playerInfo.x, playerInfo.y);
-  if (grids[pos].type !== 'tool') {
+  if (map.grids[pos].type !== 'tool') {
     return;
   }
-  grids[pos].empty = true;
-  grids[pos].type = 'empty';
-  console.log('Tool '+grids[pos].tool+' at ('+pos%13+','+Math.floor(pos/13)+') eaten by '+playerInfo.playerid);
+  map.grids[pos].empty = true;
+  map.grids[pos].type = 'empty';
+  console.log('Tool '+map.grids[pos].tool+' at ('+pos%13+','+Math.floor(pos/13)+') eaten by '+playerInfo.playerid);
   sendObjToAllClient({
     event: 'tool_disappeared',
     glogrid: pos,
-    tooltype: grids[pos].tool,
+    tooltype: map.grids[pos].tool,
     eater: playerInfo.playerid
   });
 }
@@ -396,10 +381,10 @@ function toolappear_impl(getgrid) {
     return;
   }
   var toolty = randTool();
-  if (grids[getgrid].empty) {
-    grids[getgrid].empty = true;
-    grids[getgrid].type = 'tool';
-    grids[getgrid].tool = toolty;
+  if (map.grids[getgrid].empty) {
+    map.grids[getgrid].empty = true;
+    map.grids[getgrid].type = 'tool';
+    map.grids[getgrid].tool = toolty;
     sendObjToAllClient({
       event: 'tool_appeared',
       grid: getgrid,
@@ -411,12 +396,7 @@ function toolappear_impl(getgrid) {
 }
 
 function toolappear() {
-  /*
-  if(!gameStarted) {
-    return;
-  }
-  */
-  setTimeout(toolappear,Math.floor(Math.random() * 3000)+5000);
+  setTimeout(toolappear, Math.floor(Math.random() * 3000) + 5000);
   var getgrid = randIniPos(false);
   if(getgrid !== -1) {
     toolappear_impl(getgrid);
@@ -446,15 +426,15 @@ function player_bombed(playerid) {
 function putBomb(playerid, x, y, bombingPower) {
   var pos = x + y * 13;
   //console.log(pos);
-  //console.log(grids[pos]);
-  if (grids[pos].type !== 'empty') {
+  //console.log(map.grids[pos]);
+  if (map.grids[pos].type !== 'empty') {
     return;
   }
   console.log('Player ' + playerid + ' put a bomb at (' + x + ', ' + y + ')');
-  grids[pos].empty = false; // 炸彈不能過
-  grids[pos].type = 'bomb';
-  grids[pos].bombingPower = bombingPower;
-  grids[pos].murderer = playerid;
+  map.grids[pos].empty = false; // 炸彈不能過
+  map.grids[pos].type = 'bomb';
+  map.grids[pos].bombingPower = bombingPower;
+  map.grids[pos].murderer = playerid;
   sendObjToAllClient({
     event: 'bomb_put',
     x: x,
@@ -476,7 +456,7 @@ function bombing(bombX, bombY, range, dir) {
   if(!(0 <= bombX && bombX <= 12 && 0 <= bombY && bombY <= 12)) {
     return;
   }
-  var grid = grids[bombX + bombY * 13];
+  var grid = map.grids[bombX + bombY * 13];
   var original = (typeof range === 'undefined');
   if (original && grid.type !== 'bomb') { // bombs may be bombed
     //console.log('('+bombX+','+bombY+') is not a bomb');
@@ -523,9 +503,9 @@ function bombing(bombX, bombY, range, dir) {
 
 function grid_bombed(x, y) {
   var pos = x + y * 13;
-  var grid = grids[pos];
+  var grid = map.grids[pos];
   //console.log("Grid ("+x+","+y+") bombed");
-  //console.log(grids[pos].type);
+  //console.log(map.grids[pos].type);
 
   /* Additional work before really bombing the grid */
   if (grid.type === 'vwall') {
@@ -542,11 +522,11 @@ function grid_bombed(x, y) {
       y: y
     });
   } else if (grid.type === 'tool') {
-    console.log('Tool '+grids[pos].tool+' at ('+pos%13+','+Math.floor(pos/13)+') bombed');
+    console.log('Tool '+map.grids[pos].tool+' at ('+pos%13+','+Math.floor(pos/13)+') bombed');
     sendObjToAllClient({
       event: 'tool_disappeared',
       glogrid: pos,
-      tooltype: grids[pos].tool,
+      tooltype: map.grids[pos].tool,
       eater: 'bomb'
     });
   }
