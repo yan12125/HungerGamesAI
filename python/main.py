@@ -67,18 +67,25 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', dest='agentName', default='idle')
+    parser.add_argument('-p', dest='posReq', default=None)
     options = parser.parse_args()
     current_agent = load_agent(options.agentName)
 
     if not current_agent:
         return -1
 
-    myname = 'AI #%d' % random.randrange(0, 100)
+    myname = 'AI %s #%d' % (options.agentName, random.randrange(0, 100))
     print('My name is %s' % myname)
+
+    if options.posReq:
+        posReq = util.gridToPos(*util.strToGrid(options.posReq))
+        print('Initial position at %s' % util.gridStr(posReq))
+    else:
+        posReq = None
 
     try:
         addr = 'ws://127.0.0.1:3000/'
-        ws = WebSocketHandler(myname, addr, ['game-protocol'])
+        ws = WebSocketHandler(myname, posReq, addr, ['game-protocol'])
         ws.connect()
         run_agent(current_agent)
         # ws.run_forever()

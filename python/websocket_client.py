@@ -94,11 +94,13 @@ def handle_messages(event, data):
 
 
 class WebSocketHandler(ws4py.client.WebSocketBaseClient):
-    def __init__(self, AIname, addr, protocols):
+    def __init__(self, AIname, posReq, addr, protocols):
         global thisPlayer_name
         super(WebSocketHandler, self).__init__(addr, protocols)
 
         self._th = gevent.Greenlet(self.run)
+
+        self.posReq = posReq
 
         thisPlayer_name = AIname
 
@@ -112,7 +114,8 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
     def opened(self):
         self.sendJson({
             'event': 'update_player_info',
-            'name': thisPlayer_name
+            'name': thisPlayer_name,
+            'position_request': self.posReq
         })
 
     def handshake_ok(self):

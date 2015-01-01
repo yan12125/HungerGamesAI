@@ -1,5 +1,6 @@
 from __future__ import division
 import math
+import re
 import grid
 from task_loop import TaskLoop
 from compat import queue
@@ -88,6 +89,14 @@ def gridStr(pos):
     return '(%d, %d)' % posToGrid(pos)
 
 
+def strToGrid(data):
+    matches = re.match(r'\((\d+),(\d+)\)', data.replace(" ", ""))
+    if matches:
+        return [int(coord) for coord in matches.groups()]
+    else:
+        raise Exception("Invalid position: %s" % data)
+
+
 def linearGridToMap(linearGrid):
     """
     Transform linear grids, one dimensional list with length n*n to
@@ -104,7 +113,7 @@ def mark_finished():
     loop.add_finished_task()
     packet_queue.put(None)
 
-def manhattanDistance( xy1, xy2 ):
-    "Returns the Manhattan distance between points xy1 and xy2"
-    return abs( xy1[0] - xy2[0] ) + abs( xy1[1] - xy2[1] )
 
+def manhattanDistance(xy1, xy2):
+    "Returns the Manhattan distance between points xy1 and xy2"
+    return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])

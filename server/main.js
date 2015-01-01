@@ -239,6 +239,12 @@ function newPlayer(connection) {
       connection.playerInfo.isObserver = obj.isObserver;
 
       var _pos = -1;
+
+      if(obj.position_request) {
+        _pos = obj.position_request;
+        console.log("Player "+obj.name+" requests position ("+_pos%13+","+parseInt(_pos/13)+")");
+      }
+
       if (_pos === -1) {
         _pos = randIniPos(true);
       }
