@@ -91,7 +91,17 @@ def handle_messages(event, data):
     else:
         print('Unknown data')
         print(data)
-
+def handleCommuteMessages(event, data):
+    state = GameState.current
+    if event == 'register_friend':
+      friendPlayer_id = str(data['myPlayerid'])
+      player_id = str(data['friendPlayerid'])
+      print("getMessage from %s" %friendPlayer_id)
+      state.players[player_id].RegisterMyFriendId(friendPlayer_id)
+    if event=='Advice':
+      friendPlayer_id = str(data['myPlayerid'])
+      player_id = str(data['friendPlayerid'])
+      state.players[player_id].getMoveFromFriend(str(data['Move'])) 
 
 class WebSocketHandler(ws4py.client.WebSocketBaseClient):
     def __init__(self, AIname, posReq, addr, protocols):
@@ -144,4 +154,34 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
             obj = util.packet_queue.get()
             if not obj:
                 break
+            print obj
             self.sendJson(obj)
+class CommuteSocketHandler(WebSocketHandler):
+    def received_message(self, data):
+        try:
+            obj = json.loads(str(data))  # data is in fact a Message Object
+        except:
+            print('Invalid JSON from server: %s' % data)
+            return
+        if not isinstance(obj, dict) or 'event' not in obj:
+            print('Invalid message from server')
+            print(obj)
+            return
+        print obj
+
+        event = obj['event']
+        handleCommuteMessages(event, obj)
+    
+    def packet_consumer(self):
+        while True:
+            gevent.sleep(util.BASE_INTERVAL)
+            if util.commute_packet_queue.empty():
+              continue
+            obj = util.commute_packet_queue.get()
+#            if not obj:
+#                break
+#            print "BTN"
+            if obj:
+              self.sendJson(obj)
+    def opened(self):
+        None
