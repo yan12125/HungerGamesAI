@@ -529,10 +529,18 @@ function webSocketInit(isObserver) {
                 }
             },1000/60);
         } else if (obj.event === 'bombing') {
-            var pos = obj.x + obj.y * 13;
-            map[pos].type = 'empty';
-            map[pos].empty = true;
-            grids[pos].classList.remove('bomb');
+            for(var i = 0; i < obj.bombing.length; i++) {
+                var pos = obj.bombing[i].pos;
+                map[pos].type = 'empty';
+                map[pos].empty = true;
+                grids[pos].classList.remove('bomb');
+            }
+            for(var i = 0; i < obj.gridBombed.length; i++) {
+                grid_bombed(obj.gridBombed[i], true);
+            }
+            for(var i = 0; i < obj.wallBombed.length; i++) {
+                wallBombard(obj.wallBombed[i]);
+            }
         } else if (obj.event === 'player_bombed') {
             if (obj.playerid === thisPlayer.id) {
                 thisPlayer.elm.style.opacity = 0.3;
@@ -540,10 +548,6 @@ function webSocketInit(isObserver) {
             } else {
                 players.getPlayerById(obj.playerid).elm.style.opacity=0.1;
             }
-        } else if (obj.event === 'wall_vanish') {
-            wallBombard(obj.x, obj.y);
-        } else if (obj.event === 'grid_bombed') {
-            grid_bombed(obj.x, obj.y, true);
         }
         /** bomb ends here */
         /** tool starts here */
@@ -589,8 +593,7 @@ function putBomb(playerid, x, y) {
   });
 }
 
-function grid_bombed(x, y, status) {
-  var pos = x + y * 13;
+function grid_bombed(pos, status) {
   if (status) {
     grids[pos].classList.add('bombed');
     if (grids[pos].classList.contains('tool')){
@@ -605,7 +608,7 @@ function grid_bombed(x, y, status) {
   }
   if (status) {
     setTimeout(function(){
-      grid_bombed(x,y, false);
+      grid_bombed(pos, false);
     }, 500);
   }
 }
@@ -672,8 +675,7 @@ function toolapply(obj) {
 
 /** [    END    ] section: bomb manipulation  maintained by yan */
 
-function wallBombard(x, y){
-  var pos = x + y * 13;
+function wallBombard(pos){
   // This function won't be called on nvwall
   map[pos].type = 'empty';
   map[pos].empty = true;

@@ -3,12 +3,13 @@ IMPORTANT NOTE: Only tested on Arch Linux and Ubuntu 14.10
 Install required packages for Arch Linux
 
     sudo pacman -S nodejs python2-gevent python2-ws4py python2-texttable
+    yaourt -S --noconfirm python2-colorama
     cd server/
     npm install
 
 Install required packages for Ubuntu 14.10
 
-    sudo apt-get install nodejs python-gevent python-ws4py python-texttable
+    sudo apt-get install nodejs python-gevent python-ws4py python-texttable python-colorama
     cd server/
     npm install
 
@@ -35,8 +36,9 @@ Existing agents:
 
 Want to using python 3 (on Arch Linux)?
 
-ws4py is easy:
-    pacman -S python-ws4py
+ws4py and colorama is easy:
+    sudo pacman -S python-ws4py
+    yaourt -S --noconfirm python-colorama
 
 However, gevent and texttable are tricky
 For gevent, official version does not support python 3. @fantix's fork is available.

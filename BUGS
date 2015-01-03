@@ -2,15 +2,10 @@ BUGS
 
 Important:
 Penetrate not working
-Premature bombing
-Use alternatives to 'onBomb'
-BombCount is false when player is on UFO
-Bomb explode too early
 SomeTimes agent can't find players
 Why bombPutTime is None in bombsGen
 Iwillbombyou will die instantly
-Choose the place in which AI appears(or replay mode)
-Map generator
+replay mode
 
 Not so important:
 "Connection reset by peer" or "Broken pipe" when drunken or bomber bombed

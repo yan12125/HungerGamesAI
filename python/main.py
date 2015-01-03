@@ -18,11 +18,14 @@ import logging
 import importlib
 import traceback
 import inspect
+import colorama
 
 from game_state import GameState
 from websocket_client import WebSocketHandler
 from websocket_client import CommuteSocketHandler
 import util
+
+colorama.init(autoreset=True)
 
 GameState.current = GameState()
 
