@@ -465,7 +465,7 @@ function bombing(bombX, bombY) {
         'wallBombed': result.wallBombed
     });
     for(var i = 0; i < result.bombing.length; i++) {
-        var curPos = result.bombing[i];
+        var curPos = result.bombing[i].pos;
         var grid = map.grids[curPos];
         console.log("Bombing timer = "+grid.bombingTimer);
         // In Node.js, setTimeout returns objects

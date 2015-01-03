@@ -66,18 +66,16 @@ class Map(object):
         self.invalidateSafeMap()
         self.dumpGrids()
 
-    def bombing(self, gridX, gridY):
+    def bombing(self, pos):
         self.invalidateSafeMap()
 
-    def gridBombed(self, gridX, gridY):
-        pos = util.gridToPos(gridX, gridY)
+    def gridBombed(self, pos):
         print('Grid at %s bombed' % util.gridStr(pos))
         self.grids[pos].grid_type = 'empty'
         self.dumpGrids()
         self.invalidateSafeMap()
 
-    def wallBombed(self, gridX, gridY):
-        pos = util.gridToPos(gridX, gridY)
+    def wallBombed(self, pos):
         print('Wall at %s bombed' % util.gridStr(pos))
         # Grid settings already done in gridBombed()
         self.invalidateSafeMap()

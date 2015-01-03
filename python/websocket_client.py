@@ -50,20 +50,24 @@ def handle_messages(event, data):
         state.players[murdererid].putBomb()
         state.checkLeave(util.gridToPos(data['x'], data['y']))
 
-    elif event == 'grid_bombed':
-        state.game_map.gridBombed(data['x'], data['y'])
-
-    elif event == 'wall_vanish':
-        state.game_map.wallBombed(data['x'], data['y'])
-
     elif event == 'player_bombed':
         player_id = str(data['playerid'])
         state.players[player_id].bombed()
+
     elif event == 'bombing':
-        murderer_id = str(data['murderer'])
-        state.players[murderer_id].bombCount -= 1
-        state.game_map.bombing(data['x'], data['y'])
-        print(state.players[murderer_id].bombCount)
+        for oneBomb in data['bombing']:
+            murderer_id = str(oneBomb['murdererid'])
+            state.players[murderer_id].bombCount -= 1
+            state.game_map.bombing(oneBomb['pos'])
+
+        for oneGrid in data['gridBombed']:
+            state.game_map.gridBombed(oneGrid)
+
+        for oneWall in data['wallBombed']:
+            state.game_map.wallBombed(oneWall)
+
+        me = state.me()
+        print("My bomb count = %d, limit = %d" % (me.bombCount, me.bombLimit))
 
     # tool events
     elif event == 'tool_appeared':

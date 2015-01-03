@@ -530,7 +530,7 @@ function webSocketInit(isObserver) {
             },1000/60);
         } else if (obj.event === 'bombing') {
             for(var i = 0; i < obj.bombing.length; i++) {
-                var pos = obj.bombing[i];
+                var pos = obj.bombing[i].pos;
                 map[pos].type = 'empty';
                 map[pos].empty = true;
                 grids[pos].classList.remove('bomb');

@@ -162,9 +162,14 @@ function bombing(gridX, gridY)
     }
 
     gridBombed = _.union(gridBombed, bombingBombs);
-
+    var posToObj = function (pos) {
+        return {
+            pos: pos,
+            murdererid: grids[pos].murderer
+        }
+    };
     var ret = {
-        'bombing': bombingBombs,
+        'bombing': bombingBombs.map(posToObj),
         'gridBombed': gridBombed,
         'wallBombed': wallBombed
     };

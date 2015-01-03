@@ -1,4 +1,5 @@
 import util
+from colorama import Fore
 from direction import Direction
 from grid import Grid
 
@@ -18,6 +19,10 @@ class Agent(object):
         bombPos = util.gridToPos(bombX, bombY)
         grid = state.game_map.grids[bombPos]
         if grid.grid_type is Grid.BOMB:
+            return False
+
+        if grid.grid_type == Grid.NVWALL or grid.grid_type == Grid.VWALL:
+            print(Fore.RED+'Warning: attempt to put bomb on wall %s' % util.gridStr(bombPos))
             return False
 
         self.lastState = self.whichState
