@@ -28,6 +28,8 @@ class Agent(object):
         self.lastState = self.whichState
         self.whichState = 1
         self.lastPos = bombPos
+        
+#        state.game_map.bombPut(bombX,bombY, player.bombPower)
 
         print("Put a bomb at %s" % util.gridStr(bombPos))
         player.bombCount += 1
