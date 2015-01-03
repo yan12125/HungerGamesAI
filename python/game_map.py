@@ -88,6 +88,12 @@ class Map(object):
             if grid.grid_type == Grid.BOMB:
                 yield (i, grid)
 
+    def toolsGen(self):
+        for i in range(0, len(self.grids)):
+            grid = self.grids[i]
+            if grid.grid_type == Grid.Tool:
+                yield (i, grid)
+
     def bombCount(self):
         count = 0
         for i, grid in self.bombsGen():
@@ -235,6 +241,21 @@ class Map(object):
                (self.grids[position].canPass() and not self.gridIs(position, Grid.BOMB) or player.penetrate):
                 wayCount += 1
         return wayCount
+    def moreWayAroundPos(self, pos, player = Player(-1, "test")):
+        safe_map = self.safeMap()
+        gridX, gridY = util.posToGrid(pos)
+        plusAndMinus = [(-1, 0), (1, 0), (0, -1), (0, 1),(-2, 0), (2, 0), (0, -2), (0, 2)]
+        pointAroundMe = \
+        [(gridX + x, gridY + y) for x, y in plusAndMinus if Map.gridInMap(gridX + x, gridY + y)]
+        wayCount = 0
+        for x, y in pointAroundMe:
+            position = util.gridToPos(x, y)
+            if safe_map[x][y] and\
+               (self.grids[position].canPass() and not self.gridIs(position, Grid.BOMB) or player.penetrate):
+                wayCount += 1
+        return wayCount
+
+    
 
     @staticmethod
     def manhattan(coord1, coord2):
