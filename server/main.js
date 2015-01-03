@@ -3,10 +3,13 @@
 /**
 * Module dependencies
 */
+var path = require('path');
 var uuid = require('node-uuid');
 var express = require('express');
 var commander = require('commander');
 var WebSocketServer = require('websocket').server;
+var sntp = require('sntp');
+var colors = require('colors');
 
 var map = require('./map.js');
 var util = require('./util.js');
@@ -16,15 +19,21 @@ commander
 .option('-m, --map <map>', 'Map file to use')
 .parse(process.argv);
 
-
 /**
 * Constants
 */
 var WEB_SERVER_PORT = commander.port || 3000;
 var MAP_FILE = commander.map || 'patrit14';
+/**
+* images URL
+*/
+var images = ['img/red.png', 'img/orange.png','img/yellow.png','img/green.png','img/blue.png','img/purple.png'];
 
-var map_dimension = 13;
-
+/**
+* game started?
+*/
+var gameStarted = false;
+var __gameStarting = false; // 記錄是否已經輸入過 go 了
 
 /**
 * Express web server
@@ -32,7 +41,8 @@ var map_dimension = 13;
 *    - Serve the .html/.css/.js files to browser
 *
 */
-var app = module.exports = express.createServer();
+var app = express.createServer();
+var wsConnections = [];
 
 app.configure(function () {
   app.use(express.errorHandler({
@@ -42,22 +52,16 @@ app.configure(function () {
   app.use(app.router);
 
   // Client-side data are under ../client
-  app.use(express.static(require('path').dirname(__dirname) + '/client'));
+  app.use(express.static(path.join(path.dirname(__dirname), 'client')));
 });
 
 // Express router:
-// for start game
 app.get('/test', function(req, res) {
   // 回應訊息，表示這一個 ip:port 的伺服器還活著
   res.send('ok');
 });
 
-/**
-* game started?
-*/
-var gameStarted = false;
-var __gameStarting = false; // 記錄是否已經輸入過 go 了
-
+// for start game
 app.get('/start_game', function (req, res) {
   if(!wsConnections.length) {
     res.send('No clients yet');
@@ -94,11 +98,6 @@ app.get('/report', function (req, res) {
     res.send(JSON.stringify(infos));
 });
 
-app.listen(WEB_SERVER_PORT, function () {
-  console.log('Web server starts listening port %d for %s',
-    app.address().port, 'HTTP requests and WebSockets');
-});
-
 /**
 * My webscoket server
 *
@@ -110,22 +109,13 @@ var wsServer = new WebSocketServer({
   httpServer: app,
   autoAcceptConnections: false
 });
+
 wsServer.on("request",function(request){
   // console.log(request.requestedProtocols);
   var connection = request.accept('game-protocol', request.origin);
 
   newPlayer(connection);
 });
-/**
-* images URL
-*/
-var images = ['img/red.png', 'img/orange.png','img/yellow.png','img/green.png','img/blue.png','img/purple.png'];
-
-var wsConnections = [];
-
-map.iniMap(MAP_FILE);
-
-toolappear();
 
 function getConnectionById(uuid) {
   for (var i = 0, len = wsConnections.length; i < len; i += 1)
@@ -141,6 +131,34 @@ process.on('exit', function (code) {
 process.on('SIGINT', function() {
   process.exit();
 });
+
+main();
+
+function main() {
+    var options = {
+        timeout: 1000
+    };
+
+    sntp.time(options, function (err, time) {
+        if (err) {
+            console.log(('Warning: failed to fetch remote time: ' + err.message).red);
+        } else {
+            console.log('SNTP: time difference='+time.t);
+        }
+        main2();
+    });
+}
+
+function main2() {
+    app.listen(WEB_SERVER_PORT, function () {
+      console.log('Web server starts listening port %d for %s',
+        app.address().port, 'HTTP requests and WebSockets');
+    });
+
+    map.iniMap(MAP_FILE);
+
+    toolappear();
+};
 
 function newPlayer(connection) {
   wsConnections.push(connection);

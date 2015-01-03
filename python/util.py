@@ -1,6 +1,7 @@
 from __future__ import division
 import math
 import re
+import ntplib
 import grid
 from task_loop import TaskLoop
 from compat import queue
@@ -29,6 +30,9 @@ empty_linear_grid = [grid.Grid() for i in grid_gen]
 loop = TaskLoop()
 
 packet_queue = queue.Queue()
+
+ntp_offset = None
+client = ntplib.NTPClient()
 
 
 def posToGrid(pos):
@@ -117,3 +121,12 @@ def mark_finished():
 def manhattanDistance(xy1, xy2):
     "Returns the Manhattan distance between points xy1 and xy2"
     return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+
+
+def getNTPOffset():
+    global ntp_offset
+    try:
+        response = client.request('pool.ntp.org', version=3)
+        ntp_offset = response.offset
+    except NTPException:
+        print(Fore.RED+'Warning: failed to get NTP time. Bomb timer may be inaccurate')

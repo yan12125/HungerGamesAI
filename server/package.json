@@ -7,6 +7,8 @@
     "express": "2.5.8",
     "websocket": "1.0.14",
     "commander": "0.6.1",
-    "underscore": "1.7.0"
+    "underscore": "1.7.0",
+    "sntp": "1.0.9",
+    "colors": "1.0.3"
   }
 }
