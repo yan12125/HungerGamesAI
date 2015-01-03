@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+"use strict";
 
 /**
 * Module dependencies
@@ -9,6 +9,7 @@ var commander = require('commander');
 var WebSocketServer = require('websocket').server;
 
 var map = require('./map.js');
+var util = require('./util.js');
 
 commander
 .option('-p, --port <port>', 'A port for HTTP/WebSocket ', parseInt)
@@ -72,7 +73,7 @@ app.get('/start_game', function (req, res) {
     __gameStarting = true; // 避免打太多次 go<Enter> 的問題
     console.log('[Notice] Hunger Game is starting in 3 seconds...');
     sendObjToAllClient({
-      event: 'game_started', 
+      event: 'game_started',
       already_started: false
     });
     setTimeout(function() {
@@ -126,7 +127,7 @@ map.iniMap(MAP_FILE);
 
 toolappear();
 
-getConnectionById = function (uuid) {
+function getConnectionById(uuid) {
   for (var i = 0, len = wsConnections.length; i < len; i += 1)
     if (wsConnections[i] && wsConnections[i].playerInfo.playerid === uuid) {
         return wsConnections[i];
@@ -169,7 +170,7 @@ function newPlayer(connection) {
   }, connection);
   if ( gameStarted ) {
     sendObjToClient({
-      event: 'game_started', 
+      event: 'game_started',
       already_started: true
     }, connection);
   }
@@ -186,7 +187,7 @@ function newPlayer(connection) {
       if(!connection.playerInfo.dead) {
         sendObjToAllClient({
           event: 'player_offline',
-          playerid: connection.playerInfo.playerid, 
+          playerid: connection.playerInfo.playerid,
           reason: 'just_offline'
         });
       }
@@ -434,123 +435,77 @@ function putBomb(playerid, x, y, bombingPower) {
   //console.log(pos);
   //console.log(map.grids[pos]);
   if (map.grids[pos].type !== 'empty') {
+    console.log("[Warning] Bomb put on non-empty grid "+util.posToStr(pos));
     return;
   }
   console.log('Player ' + playerid + ' put a bomb at (' + x + ', ' + y + ')');
-  map.grids[pos].empty = false; // 炸彈不能過
-  map.grids[pos].type = 'bomb';
-  map.grids[pos].bombingPower = bombingPower;
-  map.grids[pos].murderer = playerid;
+  var grid = map.grids[pos];
+  grid.empty = false; // 炸彈不能過
+  grid.type = 'bomb';
+  grid.bombingPower = bombingPower;
+  grid.murderer = playerid;
   sendObjToAllClient({
     event: 'bomb_put',
     x: x,
     y: y,
-    murdererid: playerid, 
+    murdererid: playerid,
     power: bombingPower
   });
-  setTimeout(function () {
+  grid.bombingTimer = setTimeout(function () {
     bombing(x, y);
   }, 3000);
 }
 
-/*
- * 對炸彈本身而言，range和dir都是undefined
- * "餘波" 會把range設成剩下的範圍，dir是餘波的方向
- * */
-function bombing(bombX, bombY, range, dir) {
-  //console.log("bombing("+bombX+","+bombY+","+range+","+dir+")");
-  if(!(0 <= bombX && bombX <= 12 && 0 <= bombY && bombY <= 12)) {
-    return;
-  }
-  var grid = map.grids[bombX + bombY * 13];
-  var original = (typeof range === 'undefined');
-  if (original && grid.type !== 'bomb') { // bombs may be bombed
-    //console.log('('+bombX+','+bombY+') is not a bomb');
-    return;
-  } else if (!original && grid.type == 'bomb') {
-    bombing(bombX, bombY); // 餘波可以穿越炸彈
-  } else if (!original && dir && grid.type === 'nvwall') {
-    //console.log('Bombing stopped at NVWall ('+bombX+','+bombY+')');
-    return;
-  } else if (!original && range < 0) {
-    return;
-  }
-  if(original) {
-    range = grid.bombingPower;
-    var obj = {
-        event: 'bombing', 
-        murderer: grid.murderer, 
-        x: bombX, 
-        y: bombY
-    };
-    console.log(obj)
-    sendObjToAllClient(obj);
-  }
-  var old_type = grid.type; // type is set to empty after bombing
-  grid_bombed(bombX, bombY);
-
-  // bomb bombed would explode
-  if(original) {
-    var dirs = [ [1,0], [-1,0], [0,1], [0,-1] ];
-    dirs.forEach(function(item) {
-      var newBombX = bombX + item[0];
-      var newBombY = bombY + item[1];
-      bombing(newBombX, newBombY, range-1, item);
-    });
-  } else {
-    if (old_type === 'vwall') {
-      return; // 餘波威力不穿透vwall
-    }
-    var newBombX = bombX + dir[0];
-    var newBombY = bombY + dir[1];
-    bombing(newBombX, newBombY, range-1, dir);
-  }
-}
-
-function grid_bombed(x, y) {
-  var pos = x + y * 13;
-  var grid = map.grids[pos];
-  //console.log("Grid ("+x+","+y+") bombed");
-  //console.log(map.grids[pos].type);
-
-  /* Additional work before really bombing the grid */
-  if (grid.type === 'vwall') {
-    //console.log("VWall at ("+x+","+y+") vanished");
-    var posibility=Math.floor(Math.random()*100);
-    if(posibility<30) {
-      setTimeout(function(){ toolappearbybombed(pos); },750);
-    }
-    grid.type = 'empty';
-    grid.empty = true;
+function bombing(bombX, bombY) {
+    var result = map.bombing(bombX, bombY);
     sendObjToAllClient({
-      event: 'wall_vanish',
-      x: x,
-      y: y
+        'event': 'bombing',
+        'bombing': result.bombing,
+        'gridBombed': result.gridBombed,
+        'wallBombed': result.wallBombed
     });
-  } else if (grid.type === 'tool') {
-    console.log('Tool '+map.grids[pos].tool+' at ('+pos%13+','+Math.floor(pos/13)+') bombed');
-    sendObjToAllClient({
-      event: 'tool_disappeared',
-      glogrid: pos,
-      tooltype: map.grids[pos].tool,
-      eater: 'bomb'
-    });
-  }
-  for (var i = 0; i < wsConnections.length; i++) {
-    var info = wsConnections[i].playerInfo;
-    if (x == Math.floor(info.x / 60) && y == Math.floor(info.y / 60)) {
-      player_bombed(info.playerid);
+    for(var i = 0; i < result.bombing.length; i++) {
+        var curPos = result.bombing[i];
+        var grid = map.grids[curPos];
+        console.log("Bombing timer = "+grid.bombingTimer);
+        // In Node.js, setTimeout returns objects
+        if(grid.bombingTimer >= 1 || grid.bombingTimer instanceof Object) {
+            console.log("Clearing timer for bomb at "+util.posToStr(curPos));
+            clearTimeout(grid.bombingTimer);
+            grid.bombingTimer = 0;
+        }
     }
-  }
+    for(var i = 0; i < result.wallBombed.length; i++) {
+        if(Math.random() < 0.3) {
+            (function(pos) {
+                setTimeout(function() { toolappearbybombed(pos) }, 750);
+            })(result.wallBombed[i]);
+        }
+    }
+    for(var i = 0; i < result.gridBombed.length; i++) {
+        /* Additional work before really bombing the grid */
+        var pos = result.gridBombed[i];
+        var grid = map.grids[pos];
+        if(grid.type === 'tool') {
+            console.log('Tool '+grid.tool+' at ('+pos%13+','+Math.floor(pos/13)+') bombed');
+            sendObjToAllClient({
+                event: 'tool_disappeared',
+                glogrid: pos,
+                tooltype: grid.tool,
+                eater: 'bomb'
+            });
+        }
+        for (var j = 0; j < wsConnections.length; j++) {
+            var info = wsConnections[j].playerInfo;
+            if (util.coordToPos(info.x, info.y) == pos) {
+                player_bombed(info.playerid);
+            }
+        }
 
-  // Done the work
-  sendObjToAllClient({
-    event: 'grid_bombed',
-    x: x,
-    y: y
-  });
-  grid.type = 'empty';
-  grid.empty = true;
+        // Done the work
+        grid.type = 'empty';
+        grid.empty = true;
+    }
 }
 /** bomb ends here */
 

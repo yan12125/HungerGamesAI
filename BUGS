@@ -3,7 +3,6 @@ BUGS
 Important:
 Penetrate not working
 Premature bombing
-Use alternatives to 'onBomb'
 BombCount is false when player is on UFO
 Bomb explode too early
 SomeTimes agent can't find players
