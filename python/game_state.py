@@ -357,15 +357,15 @@ class GameState(object):
       game_map = state.game_map
 ###Need TO Check more###############
 ##Eat Bomb ##
-      if bombPut== True : 
-        state.game_map.bombPut(GridPosXY[0],GridPosXY[1],player.bombPower)
-        player.putBomb()
 #        for playerItem in state.players:
 #          self.checkLeavePlayer(playerItem,GridPos)
-        return state
+#        return state
 ####################################
 ##PLayer move##
       player.x , player.y = util.gridToCoord(newGridPosXY[0],newGridPosXY[1])
+      if bombPut== True : 
+        state.game_map.bombPut(GridPosXY[0],GridPosXY[1],player.bombPower)
+#        player.putBomb()
 ##Player Eat TOOL##
       if state.game_map.gridIs(newGridPos, Grid.TOOL):
         ##Tool disapear###
