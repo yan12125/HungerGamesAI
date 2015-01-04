@@ -53,7 +53,7 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth[0] * util.grid_dimension
         if  moveLenth[0] != util.map_dimension ** 2 and\
             (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
-            (state.bombPlayer(playerPos) or state.bombThing(playerPos, Grid.VWALL))and\
+            (state.bombPlayer(playerPos,friendId) or state.bombThing(playerPos, Grid.VWALL))and\
             judgePass > 0:
             putBomb=True
         if not __judgeStrong(player):
@@ -116,14 +116,14 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         if not util.packet_queue.empty():
             return
         player = state.me()
+        self.checkNone(player)
 #        print player.friendId
-        if player.friendId==[]:
-          player.friendId=self.friendId
         self.checkValidId(player.friendId,state)
         if player.friendId:
           friendId=player.friendId[0]
           self.coordinate(state,friendId)
-          return 
+          self.hasFriend=True
+#          return 
 
         move = self.lastMove
         myMap = state.game_map
@@ -134,7 +134,9 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
             gridX, gridY = util.posToGrid(pos)
             return safe_map[gridX][gridY]
         def __findPlayer(pos):
-            return state.posHasPlayer(pos)
+            if self.hasFriend:
+              return state.posHasPlayer(pos,friendID=friendId)
+            return state.posHasPlayer(pos)  
         def __findTool(pos):
             return myMap.gridIs(pos, Grid.TOOL) and myMap.grids[pos].tool != 2 and pos != playerPos
         def __findMiddleTool(pos):
@@ -149,6 +151,8 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         def __meCriteria(p):
             return p == player
         def __othersCriteria(p):
+            if self.hasFriend:
+              return p!=player and p!=state.players[friendId]
             return p != player
         def __trueCriteria(p):
             return True
@@ -160,9 +164,11 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         else:
             bombTime -=0.5
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth[0] * util.grid_dimension
+        if not self.hasFriend:
+          friendId=state.me().thisPlayer_id
         if  moveLenth[0] != util.map_dimension ** 2 and\
             (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
-            (state.bombPlayer(playerPos) or state.bombThing(playerPos, Grid.VWALL))and\
+            (state.bombPlayer(playerPos,friendID=friendId) or state.bombThing(playerPos, Grid.VWALL))and\
             judgePass > 0:
             self.tryPutBomb(state, player)
         if not __judgeStrong(player):
@@ -206,15 +212,15 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         newX = gridX + distance[0]
         newY = gridY + distance[1]
         newP = util.gridToPos(newX, newY)
-#        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
-##            for d in Direction.ALL:
-#                dis = Direction.distances[d]
-#                nX = gridX + dis[0]
-#                nY = gridY + dis[1]
-##                nP = util.gridToPos(nX, nY)
-#                if myMap.wayAroundPos(nP) > 0:
-#                    move = d
-#                    break;
+        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
+            for d in Direction.ALL:
+                dis = Direction.distances[d]
+                nX = gridX + dis[0]
+                nY = gridY + dis[1]
+                nP = util.gridToPos(nX, nY)
+                if myMap.wayAroundPos(nP) > 0:
+                    move = d
+                    break;
 
         self.lastMove = move
         self.goMove(player, move)
