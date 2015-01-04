@@ -35,6 +35,8 @@ var images = ['img/red.png', 'img/orange.png','img/yellow.png','img/green.png','
 var gameStarted = false;
 var __gameStarting = false; // 記錄是否已經輸入過 go 了
 
+var ntp_offset = NaN;
+
 /**
 * Express web server
 *
@@ -132,24 +134,7 @@ process.on('SIGINT', function() {
   process.exit();
 });
 
-main();
-
-function main() {
-    var options = {
-        timeout: 1000
-    };
-
-    sntp.time(options, function (err, time) {
-        if (err) {
-            console.log(('Warning: failed to fetch remote time: ' + err.message).red);
-        } else {
-            console.log('SNTP: time difference='+time.t);
-        }
-        main2();
-    });
-}
-
-function main2() {
+updateTimeOffset(function (update_success) {
     app.listen(WEB_SERVER_PORT, function () {
       console.log('Web server starts listening port %d for %s',
         app.address().port, 'HTTP requests and WebSockets');
@@ -158,7 +143,24 @@ function main2() {
     map.iniMap(MAP_FILE);
 
     toolappear();
-};
+});
+
+function updateTimeOffset(callback) {
+    var options = {
+        timeout: 1000
+    };
+
+    sntp.time(options, function (err, time) {
+        if (err) {
+            console.log(('Warning: failed to fetch remote time: ' + err.message).red);
+            callback(false);
+        } else {
+            console.log('SNTP: time difference='+time.t);
+            ntp_offset = time.t;
+            callback(true);
+        }
+    });
+}
 
 function newPlayer(connection) {
   wsConnections.push(connection);
@@ -182,10 +184,13 @@ function newPlayer(connection) {
     event: 'playerid',
     playerid: connection.playerInfo.playerid
   }, connection);
-  sendObjToClient({
-    event: 'map_initial',
-    grids: map.grids
-  }, connection);
+  updateTimeOffset(function(success) {
+    sendObjToClient({
+      event: 'map_initial',
+      grids: map.grids,
+      ntp_offset: ntp_offset
+    }, connection);
+  });
   if ( gameStarted ) {
     sendObjToClient({
       event: 'game_started',
