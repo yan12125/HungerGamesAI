@@ -101,11 +101,19 @@ def handleCommuteMessages(event, data):
       friendPlayer_id = str(data['myPlayerid'])
       player_id = str(data['friendPlayerid'])
       print("getMessage from %s" %friendPlayer_id)
-      state.players[player_id].RegisterMyFriendId(friendPlayer_id)
+      try:
+        state.players[player_id].RegisterMyFriendId(friendPlayer_id)
+      except:
+        print "FriendDie"
+
+
     if event=='Advice':
       friendPlayer_id = str(data['myPlayerid'])
       player_id = str(data['friendPlayerid'])
-      state.players[player_id].getMoveFromFriend(str(data['Move'])) 
+      try:
+        state.players[player_id].getMoveFromFriend(str(data['Move'])) 
+      except:
+        print "FriendDIe"
 
 class WebSocketHandler(ws4py.client.WebSocketBaseClient):
     def __init__(self, AIname, posReq, addr, protocols):
