@@ -24,6 +24,7 @@ class AdviceonlyAgent(Agent):
         MyFriend=player.friendId
         myFriendAdvice = player.MoveAdvice
         print player.MoveAdvice
+        print state.validMovesForMe()
         if player.MoveAdvice:
           move,putBomb=eval(myFriendAdvice[0])
           if state.moveValidForMe(move):
