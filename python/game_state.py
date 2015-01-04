@@ -140,7 +140,7 @@ class GameState(object):
                     if Map.gridInMap(newX, newY):
                         if self.game_map.gridIs(pos, kind):
                             return True
-                        elif self.game_map.gridIs(pos, Grid.NVWALL):
+                        elif not self.game_map.grids[pos].canPass():
                             break
                     else:
                         break

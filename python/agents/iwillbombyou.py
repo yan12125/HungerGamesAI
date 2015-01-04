@@ -47,15 +47,14 @@ class IwillbombyouAgent(Agent):
 
         moveLenth = state.tryBombConsiderOthers(__trueCriteria)
         bombTime = state.findMinBombTime()
-        if player.bombCount > 4:
-            bombTime -= 1.0
-        else:
-            bombTime -=0.5
+        bombTime -= 1.0
+        bombPut = False
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth[0] * util.grid_dimension
         if  moveLenth[0] != util.map_dimension ** 2 and\
             (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos) or state.bombThing(playerPos, Grid.VWALL))and\
             judgePass > 0:
+            bombPut = True
             self.tryPutBomb(state, player)
         if not __judgeStrong(player):
             actions = search.bfs(myMap, playerPos, __findTool, __findMiddleTool, player)
@@ -66,11 +65,18 @@ class IwillbombyouAgent(Agent):
             if actions:
                 move = actions[0]
 
-        if judgePass < 0:
-            if moveLenth[0] == util.map_dimension ** 2:
+        distance = Direction.distances[move]
+        gridX, gridY = util.coordToGrid(player.x, player.y)
+        newX = gridX + distance[0]
+        newY = gridY + distance[1]
+        newP = util.gridToPos(newX, newY)
+
+        if judgePass < 0 or myMap.wayAroundPos(newP, player) == 0:
+            if not bombPut:
+                moveLenth = state.tryBombConsiderOthers(__othersCriteria)
+            actions = moveLenth[1]
+            if not actions:
                 actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
-            else:
-                actions = state.tryBombConsiderOthers(__othersCriteria)[1]
 
             if actions:
                 move = actions[0]
@@ -81,7 +87,13 @@ class IwillbombyouAgent(Agent):
         %(player.speed, player.bombLimit, player.bombCount, player.bombPower))
         print("JudgePass: %s, Action: %s, Move: %s" %(judgePass, actions, move))
 
-        if not state.moveValidForMe(move) and judgePass > 0:
+        distance = Direction.distances[move]
+        gridX, gridY = util.coordToGrid(player.x, player.y)
+        newX = gridX + distance[0]
+        newY = gridY + distance[1]
+        newP = util.gridToPos(newX, newY)
+        if not state.moveValidForMe(move) and (not Map.gridInMap(newX, newY) or\
+            not myMap.grids[newP].canPass() or myMap.gridIs(newP, Grid.BOMB)):
             centerX, centerY = util.posToCoord(playerPos)
             player.x = centerX
             player.y = centerY
@@ -93,20 +105,6 @@ class IwillbombyouAgent(Agent):
                 print('Error: no valid moves')
                 return
             move = random.choice(validMoves)
-        distance = Direction.distances[move]
-        gridX, gridY = util.coordToGrid(player.x, player.y)
-        newX = gridX + distance[0]
-        newY = gridY + distance[1]
-        newP = util.gridToPos(newX, newY)
-        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
-            for d in Direction.ALL:
-                dis = Direction.distances[d]
-                nX = gridX + dis[0]
-                nY = gridY + dis[1]
-                nP = util.gridToPos(nX, nY)
-                if myMap.wayAroundPos(nP) > 0:
-                    move = d
-                    break;
 
         self.lastMove = move
         self.goMove(player, move)
