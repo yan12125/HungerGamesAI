@@ -275,6 +275,9 @@ function newPlayer(connection) {
         event: 'player_list',
         list: playerInfoList
       });
+
+      // is user got the tool immediately?
+      checkEatTools(connection.playerInfo);
     } else if (obj.event === 'player_position') {
       // 使用者請求更新座標至 (obj.x, obj.y)
       sendObjToAllClient({
@@ -398,9 +401,6 @@ function randTool() {
 }
 
 function toolappear_impl(getgrid) {
-  if(!wsConnections.length) {
-    return;
-  }
   var toolty = randTool();
   if (map.grids[getgrid].empty) {
     map.grids[getgrid].empty = true;
@@ -411,6 +411,10 @@ function toolappear_impl(getgrid) {
       grid: getgrid,
       tooltype: toolty
     });
+    // Users may stand on the grid with new tool
+    for(var i = 0; i < wsConnections.length; i++) {
+      checkEatTools(wsConnections[i].playerInfo);
+    }
   }
   //console.log('tool');
   //console.log(getgrid);
