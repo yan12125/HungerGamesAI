@@ -78,7 +78,9 @@ class GameState(object):
           if item!=Player.thisPlayer_id:
             otherlist.append(self.players[item])
         return otherlist
-    def posHasPlayer(self, pos):
+    def posHasPlayer(self, pos, playerID=None):
+        if playerID==None:
+          playerID=Player.thisPlayer_id
         if util.DEBUG:
             playerPositions = []
 
@@ -88,7 +90,7 @@ class GameState(object):
             if util.DEBUG:
                 playerPositions.append(playerPos)
 
-            if pos == playerPos and player != self.me():
+            if pos == playerPos and player != self.players[playerID]:
                 return True
 
         if util.DEBUG:
@@ -170,7 +172,9 @@ class GameState(object):
             bombTime = max(bombTime, time.time() - grid.bombPutTime)
         return (Grid.BOMB_DELAY - bombTime)
 
-    def tryBombConsiderOthers(self, criteria):
+    def tryBombConsiderOthers(self, criteria,playid = None):
+        if playid == None:
+          playid=deepcopy(Player.thisPlayer_id)
         safeMap = util.linearGridToMap([True for i in util.grid_gen])
         gameMap = deepcopy(self.game_map)
         bombs = list(self.game_map.bombsGen())
@@ -210,7 +214,7 @@ class GameState(object):
                             break
                         __markAsUnsafe(newX, newY)
 
-        me = self.me()
+        me = self.players[playid]
         startPos = util.coordToPos(me.x, me.y)
         path = search.bfs(gameMap, startPos, __internal_safe, Player = me)
         if path:
