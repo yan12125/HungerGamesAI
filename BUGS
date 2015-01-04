@@ -3,12 +3,13 @@ BUGS
 Important:
 Penetrate not working
 SomeTimes agent can't find players
-Why bombPutTime is None in bombsGen
-Iwillbombyou will die instantly
+Why bombPutTime is None in bombsGen(new player has no idea about bombPutTime)
+Iwillbombyou will die, has invalid move and move instantly
 replay mode
 
 Not so important:
 "Connection reset by peer" or "Broken pipe" when drunken or bomber bombed
+"something not bomb bombs" sometimes happens
 
 TODO
 Important:
