@@ -158,7 +158,6 @@ class WebSocketHandler(ws4py.client.WebSocketBaseClient):
             obj = util.packet_queue.get()
             if not obj:
                 break
-            print obj
             self.sendJson(obj)
 class CommuteSocketHandler(WebSocketHandler):
     def received_message(self, data):
@@ -171,7 +170,6 @@ class CommuteSocketHandler(WebSocketHandler):
             print('Invalid message from server')
             print(obj)
             return
-        print obj
 
         event = obj['event']
         handleCommuteMessages(event, obj)
