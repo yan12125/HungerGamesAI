@@ -8,6 +8,21 @@ class CommuteidleAgent(Agent):
     def __init__(self):
         super(CommuteidleAgent, self).__init__()
         self.friendId=[]
+        self.hasFriend=False
+    def ActByAdvice(self,state,player):
+      move,putBomb = eval(player.MoveAdvice[0])
+
+      if putBomb:
+        self.tryPutBomb(state,player)
+      if state.moveValidForMe(move):
+        print "Friend Advice",move
+        self.goMove(player,move)
+        player.MoveAdvice=[]
+        return True
+      else:
+        player.MoveAdvice=[]
+        return False
+
     def sendAdviceFriend(self,myID,friendID,advice):
       '''This method implement send message to friend
          send advice (move,PutBomb) to friend
@@ -28,13 +43,14 @@ class CommuteidleAgent(Agent):
     def checkNone(self,player):
       if player.friendId==[]:
           player.friendId=self.friendId
-
       if len(player.friendId)>1 and player.friendId[0]=='None':
          player.friendId.remove('None')
     def checkValidId(self,IdList,state):
        if not IdList : return 
        for ID in IdList:
          try:
+            if ID=="None":
+              return 
             state.players[ID]
          except:
             print "False"
