@@ -83,8 +83,8 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
 
         if not state.moveValidForPlayer(friendId,move) and judgePass > 0:
             centerX, centerY = util.posToCoord(playerPos)
-            player.x = centerX
-            player.y = centerY
+#            player.x = centerX
+#            player.y = centerY
             validMoves = state.validMovesForPlayer(friendId)
             if Direction.STOP in validMoves:
                 # Not always true. Eg., on a newly put bomb
@@ -98,15 +98,15 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         newX = gridX + distance[0]
         newY = gridY + distance[1]
         newP = util.gridToPos(newX, newY)
-        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
-            for d in Direction.ALL:
-                dis = Direction.distances[d]
-                nX = gridX + dis[0]
-                nY = gridY + dis[1]
-                nP = util.gridToPos(nX, nY)
-                if myMap.wayAroundPos(nP) > 0:
-                    move = d
-                    break;
+#        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
+#            for d in Direction.ALL:
+#                dis = Direction.distances[d]
+#                nX = gridX + dis[0]
+#                nY = gridY + dis[1]
+#                nP = util.gridToPos(nX, nY)
+#                if myMap.wayAroundPos(nP) > 0:
+#                    move = d
+#                    break;
 
         self.lastAdvice = move
         print str((move,putBomb))
@@ -191,8 +191,8 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
 
         if not state.moveValidForMe(move) and judgePass > 0:
             centerX, centerY = util.posToCoord(playerPos)
-            player.x = centerX
-            player.y = centerY
+#            player.x = centerX
+#            player.y = centerY
             validMoves = state.validMovesForMe()
             if Direction.STOP in validMoves:
                 # Not always true. Eg., on a newly put bomb
@@ -206,15 +206,15 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         newX = gridX + distance[0]
         newY = gridY + distance[1]
         newP = util.gridToPos(newX, newY)
-        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
-            for d in Direction.ALL:
-                dis = Direction.distances[d]
-                nX = gridX + dis[0]
-                nY = gridY + dis[1]
-                nP = util.gridToPos(nX, nY)
-                if myMap.wayAroundPos(nP) > 0:
-                    move = d
-                    break;
+#        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
+##            for d in Direction.ALL:
+#                dis = Direction.distances[d]
+#                nX = gridX + dis[0]
+#                nY = gridY + dis[1]
+##                nP = util.gridToPos(nX, nY)
+#                if myMap.wayAroundPos(nP) > 0:
+#                    move = d
+#                    break;
 
         self.lastMove = move
         self.goMove(player, move)
