@@ -28,14 +28,14 @@ class Player(object):
         ##Handle multiAgent
 
         self.friendId=[]
-        self.MoveAdvice=None
+        self.MoveAdvice=[]
 
     def RegisterMyFriendId(self,FriendID):
         self.friendId.append(FriendID)
         print("my Friend ID is : %s" % FriendID)
     
     def getMoveFromFriend(self,Move):
-        self.MoveAdvice=Move
+        self.MoveAdvice.append(Move)
 
 
     def isMe(self):
