@@ -22,7 +22,7 @@ def handle_messages(event, data):
         state.add_player(Player.thisPlayer_id, thisPlayer_name)
 
     elif event == 'map_initial':
-        state.game_map.setGrids(data['grids'])
+        state.game_map.setGrids(data['grids'], data['ntp_offset'])
 
     elif event == 'game_started':
         state.start_game(data['already_started'])

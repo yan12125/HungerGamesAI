@@ -3,6 +3,7 @@ import texttable
 from grid import Grid
 import math
 import time  # for bomb put time
+from colorama import Fore
 from direction import Direction
 from player import Player
 
@@ -15,7 +16,9 @@ class Map(object):
         self.grids = [Grid() for i in util.grid_gen]  # indexed by pos
         self.safe_map_cache = None
 
-    def setGrids(self, remote_grids):
+    def setGrids(self, remote_grids, remote_ntp_offset):
+        local_ntp_offset = util.getNTPOffset()
+        print(Fore.MAGENTA+'Got NTP offset: remote=%f, local=%f' % (remote_ntp_offset, local_ntp_offset))
         for i in util.grid_gen:
             grid = self.grids[i]
             remote_grid = remote_grids[i]
@@ -27,7 +30,8 @@ class Map(object):
                 print('Initial tool %s at %s' % (toolname, util.gridStr(i)))
             elif grid.grid_type == Grid.BOMB:
                 grid.bombPower = remote_grid['bombingPower']
-                print('Initial bomb at %s, power = %d' % (util.gridStr(i), grid.bombPower))
+                grid.bombPutTime = remote_grid['bombPutTime'] + remote_ntp_offset - local_ntp_offset
+                print('Initial bomb at %s, power = %d, time put = %f' % (util.gridStr(i), grid.bombPower, grid.bombPutTime))
         self.dumpGrids()
 
     def gridIs(self, gridPos, grid_type):
@@ -211,7 +215,6 @@ class Map(object):
 
     def safeMapAround(self,pos):
         '''return list of action leading to safe place
-          
         '''
         safe_map = self.safeMap()
         gridX, gridY = util.posToGrid(pos)
@@ -252,15 +255,3 @@ class Map(object):
                (self.grids[position].canPass() and not self.gridIs(position, Grid.BOMB) or player.penetrate):
                 wayCount += 1
         return wayCount
-
-    
-
-    @staticmethod
-    def manhattan(coord1, coord2):
-        return abs(coord1[0] - coord2[0]) + abs(coord1[1] - coord2[1])
-
-    @staticmethod
-    def euclidean(coord1, coord2):
-        dx = coord1[0] - coord2[0]
-        dy = coord1[1] - coord2[1]
-        return math.sqrt(dx * dx + dy * dy)

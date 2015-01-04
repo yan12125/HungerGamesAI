@@ -32,7 +32,6 @@ loop = TaskLoop()
 packet_queue = queue.Queue()
 commute_packet_queue=queue.Queue()
 
-ntp_offset = None
 client = ntplib.NTPClient()
 
 
@@ -125,9 +124,9 @@ def manhattanDistance(xy1, xy2):
 
 
 def getNTPOffset():
-    global ntp_offset
     try:
         response = client.request('pool.ntp.org', version=3)
-        ntp_offset = response.offset
+        return response.offset
     except NTPException:
         print(Fore.RED+'Warning: failed to get NTP time. Bomb timer may be inaccurate')
+        return None

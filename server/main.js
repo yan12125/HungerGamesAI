@@ -154,10 +154,11 @@ function updateTimeOffset(callback) {
     sntp.time(options, function (err, time) {
         if (err) {
             console.log(('Warning: failed to fetch remote time: ' + err.message).red);
+            ntp_offset = NaN;
             callback(false);
         } else {
             console.log('SNTP: time difference='+time.t);
-            ntp_offset = time.t;
+            ntp_offset = time.t / 1000;
             callback(true);
         }
     });
@@ -193,7 +194,8 @@ function newPlayer(connection) {
     console.log(gridClone);
     sendObjToClient({
       event: 'map_initial',
-      grids: gridClone
+      grids: gridClone,
+      ntp_offset: ntp_offset
     }, connection);
   });
   if ( gameStarted ) {
@@ -472,6 +474,7 @@ function putBomb(playerid, x, y, bombingPower) {
   grid.type = 'bomb';
   grid.bombingPower = bombingPower;
   grid.murderer = playerid;
+  grid.bombPutTime = (new Date()).getTime(); // unix timestamp in milliseconds
   sendObjToAllClient({
     event: 'bomb_put',
     x: x,
