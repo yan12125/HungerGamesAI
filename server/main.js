@@ -8,7 +8,6 @@ var uuid = require('node-uuid');
 var express = require('express');
 var commander = require('commander');
 var WebSocketServer = require('websocket').server;
-var sntp = require('sntp');
 var colors = require('colors');
 var _ = require('underscore');
 
@@ -35,8 +34,6 @@ var images = ['img/red.png', 'img/orange.png','img/yellow.png','img/green.png','
 */
 var gameStarted = false;
 var __gameStarting = false; // 記錄是否已經輸入過 go 了
-
-var ntp_offset = NaN;
 
 /**
 * Express web server
@@ -135,34 +132,20 @@ process.on('SIGINT', function() {
   process.exit();
 });
 
-updateTimeOffset(function (update_success) {
+/*
+ * Main entry of the game
+ * */
+var main = function () {
     app.listen(WEB_SERVER_PORT, function () {
-      console.log('Web server starts listening port %d for %s',
-        app.address().port, 'HTTP requests and WebSockets');
+      console.log('Server listens at port %d', app.address().port);
     });
 
     map.iniMap(MAP_FILE);
 
     toolappear();
-});
+};
 
-function updateTimeOffset(callback) {
-    var options = {
-        timeout: 1000
-    };
-
-    sntp.time(options, function (err, time) {
-        if (err) {
-            console.log(('Warning: failed to fetch remote time: ' + err.message).red);
-            ntp_offset = NaN;
-            callback(false);
-        } else {
-            console.log('SNTP: time difference='+time.t);
-            ntp_offset = time.t / 1000;
-            callback(true);
-        }
-    });
-}
+main();
 
 function newPlayer(connection) {
   wsConnections.push(connection);
@@ -186,18 +169,19 @@ function newPlayer(connection) {
     event: 'playerid',
     playerid: connection.playerInfo.playerid
   }, connection);
-  updateTimeOffset(function(success) {
-    var gridClone = _.clone(map.grids);
-    gridClone.forEach(function (grid) {
-        delete grid.bombingTimer;
-    });
-    console.log(gridClone);
-    sendObjToClient({
-      event: 'map_initial',
-      grids: gridClone,
-      ntp_offset: ntp_offset
-    }, connection);
+
+  var gridClone = _.clone(map.grids);
+  gridClone.forEach(function (grid) {
+      delete grid.bombingTimer;
   });
+  // console.log(gridClone);
+  // console.log(map.grids);
+  sendObjToClient({
+    event: 'map_initial',
+    grids: gridClone,
+    ntp_offset: util.getNtpOffset()
+  }, connection);
+
   if ( gameStarted ) {
     sendObjToClient({
       event: 'game_started',

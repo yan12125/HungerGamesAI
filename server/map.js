@@ -15,7 +15,7 @@ var symbolToType = {
 
 var directions = [ [0, 1], [0, -1], [1, 0], [-1, 0] ];
 
-var grids = Array(util.grid_count);
+var grids = _.times(util.grid_count, function () { return {}; });
 
 function loadMapFromFile (map_name)
 {
@@ -59,6 +59,17 @@ function loadMapFromFile (map_name)
 function iniMap(map_name)
 {
     console.log('[Notice] Initializing the map...');
+
+    // clearing existing bombing timer first
+    for(var i = 0; i < util.grid_count; i++)
+    {
+        if(util.isTimerObject(grids[i].bombingTimer))
+        {
+            console.log("Clearing bomb timer at "+util.posToStr(i));
+            clearTimeout(grids[i].bombingTimer);
+            delete grids[i].bombingTimer;
+        }
+    }
 
     var wall = loadMapFromFile(map_name);
 
@@ -108,7 +119,7 @@ function bombing(gridX, gridY)
         var grid = grids[curPos];
         if (grid.type !== 'bomb')
         {
-            throw 'Unexpected: something not bomb bombs';
+            throw 'Unexpected: '+util.posToStr(curPos)+'='+grid.type+' bombs';
         }
 
 
@@ -124,7 +135,7 @@ function bombing(gridX, gridY)
                     continue;
                 }
                 var newPos = util.gridToPos(newGridX, newGridY);
-                console.log('Check grid '+util.posToStr(newPos));
+                // console.log('Check grid '+util.posToStr(newPos));
                 if(grids[newPos].type == 'bomb' && bombingBombs.indexOf(newPos) == -1)
                 {
                     bombingBombs.push(newPos);

@@ -3,16 +3,16 @@ BUGS
 Important:
 Penetrate not working
 SomeTimes agent can't find players
-Why bombPutTime is None in bombsGen
 Iwillbombyou will die instantly
-replay mode
 
 Not so important:
 "Connection reset by peer" or "Broken pipe" when drunken or bomber bombed
 
 TODO
+
 Important:
 Communication between agents
+replay mode
 
 Not so important:
 Calculate other players' speed after randomized. Using consecutive coordinates
