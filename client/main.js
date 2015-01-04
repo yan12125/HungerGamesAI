@@ -377,6 +377,7 @@ function main() {
         if (map[i] && map[i].type === 'empty' && !map[i].empty)
             map[i].empty = true;
         /**
+         * FIXME
          * 有時 map[i].type === 'empty'
          * but map[i].type === false, while reason unknown
          */
@@ -492,12 +493,16 @@ function webSocketInit(isObserver) {
             players.removePlayerById(obj.playerid);
           }
         } else if (obj.event === 'map_initial') {
-            map = obj.grids;
-            if (map) for (var i = 0, len = map.length; i < len; i++) {
-                if (map[i].type !== 'empty' && map[i].type !== 'bomb') grids[i].classList.add(map[i].type);
-                if (map[i].type === 'tool') {
-                    grids[i].innerHTML = '<img src="img/'+tools_img[map[i].tool-1]+'" height="59px" width="59px"/>';
+            map = obj.grids; // assign global map object
+            for (var i = 0, len = obj.grids.length; i < len; i++) {
+                var grid = map[i];
+                if (grid.type !== 'empty') {
+                    grids[i].classList.add(grid.type);
                 }
+                if (grid.type === 'tool') {
+                    grids[i].innerHTML = '<img src="img/'+tools_img[grid.tool-1]+'" height="59px" width="59px"/>';
+                }
+                // TODO handling bomb power and timing
             }
         } else if (obj.event === 'player_list') {
             for (var i = 0; i < obj.list.length; i++) {

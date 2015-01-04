@@ -10,6 +10,7 @@ var commander = require('commander');
 var WebSocketServer = require('websocket').server;
 var sntp = require('sntp');
 var colors = require('colors');
+var _ = require('underscore');
 
 var map = require('./map.js');
 var util = require('./util.js');
@@ -185,10 +186,14 @@ function newPlayer(connection) {
     playerid: connection.playerInfo.playerid
   }, connection);
   updateTimeOffset(function(success) {
+    var gridClone = _.clone(map.grids);
+    gridClone.forEach(function (grid) {
+        delete grid.bombingTimer;
+    });
+    console.log(gridClone);
     sendObjToClient({
       event: 'map_initial',
-      grids: map.grids,
-      ntp_offset: ntp_offset
+      grids: gridClone
     }, connection);
   });
   if ( gameStarted ) {

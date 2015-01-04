@@ -30,6 +30,7 @@ empty_linear_grid = [grid.Grid() for i in grid_gen]
 loop = TaskLoop()
 
 packet_queue = queue.Queue()
+commute_packet_queue=queue.Queue()
 
 ntp_offset = None
 client = ntplib.NTPClient()

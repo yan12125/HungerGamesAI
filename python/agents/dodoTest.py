@@ -24,7 +24,7 @@ class DodotestAgent(Agent):
         playerPos = util.coordToPos(player.x, player.y)
         gridX, gridY = util.posToGrid(playerPos)
         bombTime = state.findMinBombTime()
-        print state.game_map.wayAroundPos(playerPos,player)
+#        print state.game_map.wayAroundPos(playerPos,player)
 
         if ((not safe_map[gridX][gridY]) and bombTime<=2.2) or (state.game_map.wayAroundPos(playerPos,player)==0 and  bombTime<=2.5):
           print "save"
@@ -59,6 +59,7 @@ class DodotestAgent(Agent):
           return 
 
 
+
         scores=[self.EvaluationFunction(state,action) for action in legalMoves]
         print scores, legalMoves
         if not scores: return
@@ -69,12 +70,11 @@ class DodotestAgent(Agent):
 #        chosenIndex = bestIndices[0]
 #        print legalMoves[chosenIndex]
                 
-#        if util.coordToPos(player.x,player.y) == util.coordToPos(player.newCoord(legalMoves[chosenIndex])[0],player.newCoord(legalMoves[chosenIndex])[1]):
-#          self.threshingDetectNum+=1 
-#        else:
-#          self.threshingDetectNum=0
-#          self.threshingDetect=False
-#        if (not safe_map[gridX][gridY])and bombTime<=0.5:
+        if util.coordToPos(player.x,player.y) == util.coordToPos(player.newCoord(legalMoves[chosenIndex])[0],player.newCoord(legalMoves[chosenIndex])[1]):
+          self.threshingDetectNum+=1 
+        else:
+          self.threshingDetectNum=0
+#        if (not safe_map[gridX][gridY])and bombTime<=0.5
 #            self.threshingDetectNum+=10
         print("Speed: %s, Limit: %s, Count: %s, Power: %s"\
                 %(player.speed, player.bombLimit, player.bombCount, player.bombPower))
@@ -111,6 +111,9 @@ class DodotestAgent(Agent):
       
       otherplayers=state.others()
       newOtherPlayers=successorGameState.others()
+      def __internal_safe(pos):
+            gridX, gridY = util.posToGrid(pos)
+            return safe_map[gridX][gridY]
 
       
 #############Find Tool Method################
@@ -119,14 +122,14 @@ class DodotestAgent(Agent):
         return successorGameState.game_map.gridIs(pos,Grid.TOOL)
 
 
-      count=search.bfs_count(state.game_map, newGridPos, __findTool, numberofIt)
+      count=search.bfs_count(state.game_map, newGridPos, __findTool,__internal_safe,N=numberofIt)
       ###IF No Tool Found Try put some bomb#########
       if ((count>=numberofIt+50 and state.game_map.safeMapAroundPos(newGridPos))or \
           (count>=numberofIt+50 and successorGameState.bombPlayer(newGridPos))):
 #and safe_map[newGridPosXY[0]][newGridPosXY[1]]:
         if  successorGameState.bombPlayer(newGridPos):
           score+=5000
-        if (not state.game_map.gridIs(newGridPos, Grid.TOOL))and state.bombThing(newGridPos,Grid.VWALL):
+        if (not state.game_map.gridIs(newGridPos, Grid.TOOL))and state.bombThing(GridPos,Grid.VWALL):
           putBomb=True
 #        else:
 #          self.threshingDetectNum+=9
@@ -159,7 +162,7 @@ class DodotestAgent(Agent):
 
 
 
-         count_Player=search.bfs_count(successorGameState.game_map, newGridPos,__findPlayer,40)
+         count_Player=search.bfs_count(successorGameState.game_map, newGridPos,__findPlayer,N=40)
          if count_Player <= 40:
 #            print "tureHunter"
             if count_Player!=0:
@@ -198,10 +201,7 @@ class DodotestAgent(Agent):
       '''
       if not safe_map[newGridPosXY[0]][newGridPosXY[1]] and \
             (bombTime <= 2 or state.game_map.wayAroundPos(GridPos,player)<=2):
-        def __internal_safe(pos):
-            gridX, gridY = util.posToGrid(pos)
-            return safe_map[gridX][gridY]
-        count2=search.bfs_count(successorGameState.game_map, newGridPos, __internal_safe,1)
+        count2=search.bfs_count(successorGameState.game_map, newGridPos, __internal_safe,N=1)
         score -= 100000
         score -= 1000*count2
       if putBomb==True:

@@ -25,6 +25,19 @@ class Player(object):
         self.penetrate = False  # whether able to bypass walls
         self.god_mod = False  # not killed by bombs
 
+        ##Handle multiAgent
+
+        self.friendId=[]
+        self.MoveAdvice=None
+
+    def RegisterMyFriendId(self,FriendID):
+        self.friendId.append(FriendID)
+        print("my Friend ID is : %s" % FriendID)
+    
+    def getMoveFromFriend(self,Move):
+        self.MoveAdvice=Move
+
+
     def isMe(self):
         return self.player_id == Player.thisPlayer_id
 

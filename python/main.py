@@ -22,6 +22,7 @@ import colorama
 
 from game_state import GameState
 from websocket_client import WebSocketHandler
+from websocket_client import CommuteSocketHandler
 import util
 
 colorama.init(autoreset=True)
@@ -71,6 +72,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', dest='agentName', default='idle')
     parser.add_argument('-p', dest='posReq', default=None)
+    parser.add_argument('-f', dest='friendAgentName',default=None)
     options = parser.parse_args()
     current_agent = load_agent(options.agentName)
 
@@ -93,6 +95,15 @@ def main():
         run_agent(current_agent)
         # ws.run_forever()
         greenlets = []
+        if options.friendAgentName:
+           print ('My friend is %s' % options.friendAgentName)
+           current_agent.friendId.append(options.friendAgentName)
+           cAddr = 'ws://127.0.0.1:6000/'
+           cws = CommuteSocketHandler(myname, posReq, cAddr, ['game-protocol'])
+           cws.connect()
+           greenlets.append(cws._th)
+           greenlets.append(gevent.spawn(cws.packet_consumer))
+
         greenlets.append(ws._th)
         greenlets.append(gevent.spawn(util.loop.run))
         greenlets.append(gevent.spawn(ws.packet_consumer))
@@ -101,6 +112,7 @@ def main():
         util.mark_finished()
         print("Exiting...")
         ws.close()
+#        cws.close()
 
 if __name__ == '__main__':
     sys.exit(main())
