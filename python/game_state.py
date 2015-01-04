@@ -78,7 +78,9 @@ class GameState(object):
           if item!=Player.thisPlayer_id:
             otherlist.append(self.players[item])
         return otherlist
-    def posHasPlayer(self, pos):
+    def posHasPlayer(self, pos, playerID=None, friendID=None):
+        if playerID==None:
+          playerID=Player.thisPlayer_id
         if util.DEBUG:
             playerPositions = []
 
@@ -87,8 +89,12 @@ class GameState(object):
 
             if util.DEBUG:
                 playerPositions.append(playerPos)
-
-            if pos == playerPos and player != self.me():
+            if friendID ==None:
+              if pos == playerPos and player != self.players[playerID]:
+                return True 
+            else:
+              if pos == playerPos and player != self.players[playerID]\
+                 and player != self.players[friendID]:
                 return True
 
         if util.DEBUG:
@@ -96,8 +102,10 @@ class GameState(object):
 
         return False
 
-    def bombPlayer(self, pos):
-        me = self.me()
+    def bombPlayer(self, pos, ID=None,friendID=None):
+        if ID==None:
+          ID=deepcopy(Player.thisPlayer_id)
+        me = self.players[ID]
         bomb_map = util.linearGridToMap([False for i in util.grid_gen])
 
         def __markAsBomb(gridX, gridY):
@@ -120,9 +128,15 @@ class GameState(object):
                     __markAsBomb(newX, newY)
         for play_id, player in self.players.items():
             gridX, gridY = util.coordToGrid(player.x, player.y)
-            if bomb_map[gridX][gridY] and player.player_id != me.player_id:
+            if friendID!=None:
+              if bomb_map[gridX][gridY] and player.player_id != me.player_id\
+                and player.player_id!=friendID:
+                return True
+            else:
+              if bomb_map[gridX][gridY] and player.player_id != me.player_id:
                 return True
         return False
+
 
     def bombThing(self, pos, kind):
         me = self.me()
@@ -138,7 +152,7 @@ class GameState(object):
                     if Map.gridInMap(newX, newY):
                         if self.game_map.gridIs(pos, kind):
                             return True
-                        elif self.game_map.gridIs(pos, Grid.NVWALL):
+                        elif not self.game_map.grids[pos].canPass():
                             break
                     else:
                         break
@@ -170,7 +184,9 @@ class GameState(object):
             bombTime = max(bombTime, time.time() - grid.bombPutTime)
         return (Grid.BOMB_DELAY - bombTime)
 
-    def tryBombConsiderOthers(self, criteria):
+    def tryBombConsiderOthers(self, criteria,playid = None):
+        if playid == None:
+          playid=deepcopy(Player.thisPlayer_id)
         safeMap = util.linearGridToMap([True for i in util.grid_gen])
         gameMap = deepcopy(self.game_map)
         bombs = list(self.game_map.bombsGen())
@@ -210,7 +226,7 @@ class GameState(object):
                             break
                         __markAsUnsafe(newX, newY)
 
-        me = self.me()
+        me = self.players[playid]
         startPos = util.coordToPos(me.x, me.y)
         path = search.bfs(gameMap, startPos, __internal_safe, Player = me)
         if path:

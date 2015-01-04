@@ -27,7 +27,10 @@ class BomberAgent(Agent):
             return safe_map[gridX][gridY]
         actions = search.bfs(state.game_map, playerPos, __internal_safe)
 
-        move = actions[0]
+        if actions:
+            move = actions[0]
+        else:
+            return
         if state.moveValidForMe(actions[0]):
             self.goMove(player, move)
         else:

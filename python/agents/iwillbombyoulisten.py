@@ -5,28 +5,51 @@ from direction import oppDirection, Direction
 from .agent import Agent
 from grid import Grid
 from game_map import Map
+from .commuteidle import CommuteidleAgent 
+from copy import deepcopy
 
-class IwillbombyouAgent(Agent):
+class IwillbombyoulistenAgent(CommuteidleAgent):
     def __init__(self):
-        super(IwillbombyouAgent, self).__init__()
+        super(IwillbombyoulistenAgent, self).__init__()
         self.lastMove = Direction.UP
+        self.lastAdvice = Direction.UP
+    def listen(self,state,friendId):
+       if not state.me().MoveAdvice:
+         myID=state.me().thisPlayer_id
+         self.registerFriend(myID,friendId)
 
     def once(self, state):
         if not util.packet_queue.empty():
             return
-
-        move = self.lastMove
-
         player = state.me()
         myMap = state.game_map
         safe_map = myMap.safeMap()
+        move = self.lastMove
         playerPos = util.coordToPos(player.x, player.y)
         gridX, gridY = util.posToGrid(playerPos)
+        self.checkNone(player)
+#        print player.friendId
+        self.checkValidId(player.friendId,state)
+        bombTime = state.findMinBombTime()
+        if player.friendId:
+          friendId=player.friendId[0]
+          self.listen(state,friendId)
+          if friendId!= "None":
+            self.hasFriend=True
+        if player.MoveAdvice:
+          if safe_map[gridX][gridY]==True and bombTime >= 0.3:
+            if self.ActByAdvice(state,player):
+              return
+          else:
+            player.MoveAdvice=[]  
+
         def __internal_safe(pos):
             gridX, gridY = util.posToGrid(pos)
             return safe_map[gridX][gridY]
         def __findPlayer(pos):
-            return state.posHasPlayer(pos)
+            if self.hasFriend:
+              return state.posHasPlayer(pos,friendID=friendId)
+            return state.posHasPlayer(pos)  
         def __findTool(pos):
             return myMap.gridIs(pos, Grid.TOOL) and myMap.grids[pos].tool != 2 and pos != playerPos
         def __findMiddleTool(pos):
@@ -41,20 +64,24 @@ class IwillbombyouAgent(Agent):
         def __meCriteria(p):
             return p == player
         def __othersCriteria(p):
+            if self.hasFriend:
+              return p!=player and p!=state.players[friendId]
             return p != player
         def __trueCriteria(p):
             return True
 
         moveLenth = state.tryBombConsiderOthers(__trueCriteria)
-        bombTime = state.findMinBombTime()
-        bombTime -= 1.0
-        bombPut = False
+        if player.bombCount > 4:
+            bombTime -= 1.0
+        else:
+            bombTime -=0.5
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth[0] * util.grid_dimension
+        if not self.hasFriend:
+          friendID=deepcopy(state.me().thisPlayer_id)
         if  moveLenth[0] != util.map_dimension ** 2 and\
             (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
-            (state.bombPlayer(playerPos) or state.bombThing(playerPos, Grid.VWALL))and\
+            (state.bombPlayer(playerPos,friendID=friendId) or state.bombThing(playerPos, Grid.VWALL))and\
             judgePass > 0:
-            bombPut = True
             self.tryPutBomb(state, player)
         if not __judgeStrong(player):
             actions = search.bfs(myMap, playerPos, __findTool, __findMiddleTool, player)
@@ -65,18 +92,11 @@ class IwillbombyouAgent(Agent):
             if actions:
                 move = actions[0]
 
-        distance = Direction.distances[move]
-        gridX, gridY = util.coordToGrid(player.x, player.y)
-        newX = gridX + distance[0]
-        newY = gridY + distance[1]
-        newP = util.gridToPos(newX, newY)
-
-        if judgePass < 0 or myMap.wayAroundPos(newP, player) == 0:
-            if not bombPut:
-                moveLenth = state.tryBombConsiderOthers(__othersCriteria)
-            actions = moveLenth[1]
-            if not actions:
+        if judgePass < 0:
+            if moveLenth[0] == util.map_dimension ** 2:
                 actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
+            else:
+                actions = state.tryBombConsiderOthers(__othersCriteria)[1]
 
             if actions:
                 move = actions[0]
@@ -87,24 +107,32 @@ class IwillbombyouAgent(Agent):
         %(player.speed, player.bombLimit, player.bombCount, player.bombPower))
         print("JudgePass: %s, Action: %s, Move: %s" %(judgePass, actions, move))
 
-        distance = Direction.distances[move]
-        gridX, gridY = util.coordToGrid(player.x, player.y)
-        newX = gridX + distance[0]
-        newY = gridY + distance[1]
-        newP = util.gridToPos(newX, newY)
-        if not state.moveValidForMe(move) and (not Map.gridInMap(newX, newY) or\
-            not myMap.grids[newP].canPass() or myMap.gridIs(newP, Grid.BOMB)):
+        if not state.moveValidForMe(move) and judgePass > 0:
             centerX, centerY = util.posToCoord(playerPos)
-            player.x = centerX
-            player.y = centerY
+#            player.x = centerX
+#            player.y = centerY
             validMoves = state.validMovesForMe()
             if Direction.STOP in validMoves:
                 # Not always true. Eg., on a newly put bomb
                 validMoves.remove(Direction.STOP)
             if not validMoves:
                 print('Error: no valid moves')
-                return
-            move = random.choice(validMoves)
-
+#                return
+            if validMoves:
+              move = random.choice(validMoves)
+        distance = Direction.distances[move]
+        gridX, gridY = util.coordToGrid(player.x, player.y)
+        newX = gridX + distance[0]
+        newY = gridY + distance[1]
+        newP = util.gridToPos(newX, newY)
+        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
+            for d in Direction.ALL:
+                dis = Direction.distances[d]
+                nX = gridX + dis[0]
+                nY = gridY + dis[1]
+                nP = util.gridToPos(nX, nY)
+                if myMap.wayAroundPos(nP) > 0:
+                    move = d
+                    break;
         self.lastMove = move
         self.goMove(player, move)
