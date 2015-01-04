@@ -7,6 +7,7 @@ var uuid = require('node-uuid');
 var express = require('express');
 var commander = require('commander');
 var WebSocketServer = require('websocket').server;
+var _ = require('underscore');
 
 var map = require('./map.js');
 var util = require('./util.js');
@@ -164,9 +165,14 @@ function newPlayer(connection) {
     event: 'playerid',
     playerid: connection.playerInfo.playerid
   }, connection);
+  var gridClone = _.clone(map.grids);
+  gridClone.forEach(function (grid) {
+      delete grid.bombingTimer;
+  });
+  console.log(gridClone);
   sendObjToClient({
     event: 'map_initial',
-    grids: map.grids
+    grids: gridClone
   }, connection);
   if ( gameStarted ) {
     sendObjToClient({
