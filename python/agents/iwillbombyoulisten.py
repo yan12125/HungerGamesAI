@@ -22,6 +22,8 @@ class IwillbombyoulistenAgent(CommuteidleAgent):
         if not util.packet_queue.empty():
             return
         player = state.me()
+        if player.goalPos != None :
+          print player.goalPos,"\n\n\n\n"
         myMap = state.game_map
         safe_map = myMap.safeMap()
         move = self.lastMove
@@ -109,24 +111,24 @@ class IwillbombyoulistenAgent(CommuteidleAgent):
 
         if not state.moveValidForMe(move) and judgePass > 0:
             centerX, centerY = util.posToCoord(playerPos)
-#            player.x = centerX
-#            player.y = centerY
+            player.x = centerX
+            player.y = centerY
             validMoves = state.validMovesForMe()
             if Direction.STOP in validMoves:
                 # Not always true. Eg., on a newly put bomb
                 validMoves.remove(Direction.STOP)
             if not validMoves:
                 print('Error: no valid moves')
-#                return
+                return
             if validMoves:
               if player.goalPos == None:
                 move = random.choice(validMoves)
               else:
-                print "GoFindPlayer"
+                print "\n\n\n\nGoFindPlayer\n\n\n\n"
                 dis = float("INF")
                 goalCoord = util.posToCoord(player.goalPos)
                 for item in validMoves:
-                  newCoord = player.newCoord()
+                  newCoord = player.newCoord(item)
                   tempDis=util.manhattan(goalCoord,newCoord)
                   if tempDis<dis: 
                     temp=dis

@@ -113,7 +113,7 @@ def handleCommuteMessages(event, data):
       try:
         state.players[player_id].getMoveFromFriend(str(data['Move'])) 
         if data['Goal']!="None":
-           state.players[player_id].goalPos=data['Goal']
+           state.players[player_id].goalPos=eval(data['Goal'])
       except:
         print "FriendDIe"
 
