@@ -119,7 +119,19 @@ class IwillbombyoulistenAgent(CommuteidleAgent):
                 print('Error: no valid moves')
 #                return
             if validMoves:
-              move = random.choice(validMoves)
+              if player.goalPos == None:
+                move = random.choice(validMoves)
+              else:
+                print "GoFindPlayer"
+                dis = float("INF")
+                goalCoord = util.posToCoord(player.goalPos)
+                for item in validMoves:
+                  newCoord = player.newCoord()
+                  tempDis=util.manhattan(goalCoord,newCoord)
+                  if tempDis<dis: 
+                    temp=dis
+                    move=item
+                  
         distance = Direction.distances[move]
         gridX, gridY = util.coordToGrid(player.x, player.y)
         newX = gridX + distance[0]
