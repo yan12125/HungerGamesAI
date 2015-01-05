@@ -29,6 +29,7 @@ class Player(object):
 
         self.friendId=[]
         self.MoveAdvice=[]
+        self.goalPos=None
 
     def RegisterMyFriendId(self,FriendID):
         self.friendId.append(FriendID)
