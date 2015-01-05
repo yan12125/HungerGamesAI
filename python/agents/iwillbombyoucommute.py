@@ -6,12 +6,14 @@ from .agent import Agent
 from grid import Grid
 from game_map import Map
 from .commuteidle import CommuteidleAgent 
+from copy import deepcopy
 
 class IwillbombyoucommuteAgent(CommuteidleAgent):
     def __init__(self):
         super(IwillbombyoucommuteAgent, self).__init__()
         self.lastMove = Direction.UP
         self.lastAdvice = Direction.UP
+        self.goalPos = None
     def coordinate(self,state,friendId):
         putBomb=False
         myID=state.me().thisPlayer_id
@@ -32,7 +34,7 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
             return myMap.grids[pos].tool != 2
 
         def __judgeStrong(player):
-            if player.speed < 9 or player.bombLimit < 5 or player.bombPower < 6:
+            if player.speed < 7 or player.bombLimit < 4 or player.bombPower < 4:
                 return False
             else:
                 return True
@@ -110,7 +112,7 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
 
         self.lastAdvice = move
         print str((move,putBomb))
-        self.sendAdviceFriend(myID,friendId,str((move,putBomb)))
+        self.sendAdviceFriend(myID,friendId,str((move,putBomb)),str(self.goalPos))
 #        self.goMove(player, move)
     def once(self, state):
         if not util.packet_queue.empty():
@@ -130,20 +132,32 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         safe_map = myMap.safeMap()
         playerPos = util.coordToPos(player.x, player.y)
         gridX, gridY = util.posToGrid(playerPos)
+        ##############
         def __internal_safe(pos):
             gridX, gridY = util.posToGrid(pos)
             return safe_map[gridX][gridY]
         def __findPlayer(pos):
             if self.hasFriend:
-              return state.posHasPlayer(pos,friendID=friendId)
-            return state.posHasPlayer(pos)  
+              if state.posHasPlayer(pos,friendID=friendId):
+                __findPlayer.PosGeter= pos
+                return True
+              else:
+                return False
+            else :
+              if state.posHasPlayer(pos):
+                __findPlayer.PosGeter = pos
+                print pos
+                return True    
+              else:
+                return False
+        __findPlayer.PosGeter = 0
         def __findTool(pos):
             return myMap.gridIs(pos, Grid.TOOL) and myMap.grids[pos].tool != 2 and pos != playerPos
         def __findMiddleTool(pos):
             return myMap.grids[pos].tool != 2
 
         def __judgeStrong(player):
-            if player.speed < 9 or player.bombLimit < 5 or player.bombPower < 6:
+            if player.speed < 7 or player.bombLimit < 4 or player.bombPower < 4:
                 return False
             else:
                 return True
@@ -177,6 +191,7 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
                 move = actions[0]
         else:
             actions = search.bfs(myMap, playerPos, __findPlayer, __findMiddleTool, player)
+            self.goalPos = __findPlayer.PosGeter
             if actions:
                 move = actions[0]
 
