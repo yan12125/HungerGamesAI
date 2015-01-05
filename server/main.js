@@ -391,7 +391,7 @@ function randTool() {
   else if(temp >= 96 && temp < 99)
     return 5;
   else if(temp >=99 && temp < 100)
-    return 6;
+    return 5; // removes 6, the god mode
 }
 
 function toolappear_impl(getgrid) {
