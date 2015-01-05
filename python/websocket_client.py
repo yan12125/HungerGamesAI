@@ -103,8 +103,15 @@ def handleCommuteMessages(event, data):
       print("getMessage from %s" %friendPlayer_id)
       try:
         state.players[player_id].RegisterMyFriendId(friendPlayer_id)
+        if data['Goal']!="None":
+            state.players[player_id].goalPos=eval(data['Goal'])
+        else:
+            state.players[player_id].goalPos=None
       except:
         print "FriendDie"
+        state.me().friendId=[]
+        state.me().MoveAdvice=[]
+        state.me().goalPos=None
 
 
     if event=='Advice':
@@ -113,8 +120,13 @@ def handleCommuteMessages(event, data):
       try:
         state.players[player_id].getMoveFromFriend(str(data['Move'])) 
         if data['Goal']!="None":
-           state.players[player_id].goalPos=eval(data['Goal'])
+            state.players[player_id].goalPos=eval(data['Goal'])
+        else:
+            state.players[player_id].goalPos=None
       except:
+        state.me().friendId=[]
+        state.me().MoveAdvice=[]
+        state.me().goalPos=None
         print "FriendDIe"
 
 class WebSocketHandler(ws4py.client.WebSocketBaseClient):
