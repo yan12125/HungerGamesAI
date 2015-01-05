@@ -150,14 +150,14 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
                 return True    
               else:
                 return False
-        __findPlayer.PosGeter = 0
+        __findPlayer.PosGeter = None
         def __findTool(pos):
             return myMap.gridIs(pos, Grid.TOOL) and myMap.grids[pos].tool != 2 and pos != playerPos
         def __findMiddleTool(pos):
             return myMap.grids[pos].tool != 2
 
         def __judgeStrong(player):
-            if player.speed < 5 or player.bombLimit < 2 or player.bombPower < 3:
+            if player.speed < 7 or player.bombLimit < 4 or player.bombPower < 3:
                 return False
             else:
                 return True
@@ -191,8 +191,10 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
                 move = actions[0]
         else:
             actions = search.bfs(myMap, playerPos, __findPlayer, __findMiddleTool, player)
-            print "\n\n\n\nIFouncAGOAL"
-            self.goalPos = __findPlayer.PosGeter
+            if player.goalPos == None:
+              print "\n\n\n\nIFouncAGOAL"
+              self.goalPos = __findPlayer.PosGeter
+              print str(self.goalPos)
             if actions:
                 move = actions[0]
 
@@ -222,7 +224,21 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
             if not validMoves:
                 print('Error: no valid moves')
                 return
-            move = random.choice(validMoves)
+            if validMoves:
+              if player.goalPos == None:
+                move = random.choice(validMoves)
+              else:
+                self.goalPos=None
+                print "\n\n\n\nGoFindPlayer\n\n\n\n"
+                dis = float("INF")
+                goalCoord = util.posToCoord(player.goalPos)
+                for item in validMoves:
+                  newCoord = player.newCoord(item)
+                  tempDis=util.manhattanDistance(goalCoord,newCoord)
+                  if tempDis<dis: 
+                    temp=dis
+                    move=item
+ 
         distance = Direction.distances[move]
         gridX, gridY = util.coordToGrid(player.x, player.y)
         newX = gridX + distance[0]
