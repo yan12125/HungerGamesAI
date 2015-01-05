@@ -127,6 +127,6 @@ def getNTPOffset():
     try:
         response = client.request('pool.ntp.org', version=3)
         return response.offset
-    except NTPException:
-        print(Fore.RED+'Warning: failed to get NTP time. Bomb timer may be inaccurate')
+    except ntplib.NTPException:
+        print(Fore.RED+'Warning: failed to get NTP time.')
         return None
