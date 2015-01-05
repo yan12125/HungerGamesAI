@@ -184,8 +184,8 @@ function bombing(gridX, gridY)
         'gridBombed': gridBombed,
         'wallBombed': wallBombed
     };
-    console.log('bombing results: ');
-    console.log(ret);
+    // console.log('bombing results: ');
+    // console.log(ret);
     return ret;
 }
 

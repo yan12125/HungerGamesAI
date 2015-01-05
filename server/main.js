@@ -44,6 +44,8 @@ var __gameStarting = false; // 記錄是否已經輸入過 go 了
 var app = express.createServer();
 var wsConnections = [];
 
+var bombingTimers = _.times(util.grid_count, function () { return null; });
+
 app.configure(function () {
   app.use(express.errorHandler({
     dumpExceptions: true,
@@ -170,15 +172,9 @@ function newPlayer(connection) {
     playerid: connection.playerInfo.playerid
   }, connection);
 
-  var gridClone = _.clone(map.grids);
-  gridClone.forEach(function (grid) {
-      delete grid.bombingTimer;
-  });
-  // console.log(gridClone);
-  // console.log(map.grids);
   sendObjToClient({
     event: 'map_initial',
-    grids: gridClone,
+    grids: map.grids,
     ntp_offset: util.getNtpOffset()
   }, connection);
 
@@ -450,19 +446,22 @@ function player_bombed(playerid) {
 
 function putBomb(playerid, x, y, bombingPower) {
   var pos = x + y * 13;
+  var grid = map.grids[pos];
   //console.log(pos);
   //console.log(map.grids[pos]);
-  if (map.grids[pos].type !== 'empty') {
-    console.log("[Warning] Bomb put on non-empty grid "+util.posToStr(pos));
+  if (grid.type !== 'empty') {
+    console.log(("[Warning] Bomb put on non-empty grid "+util.posToStr(pos)).green);
     return;
   }
   console.log('Player ' + playerid + ' put a bomb at (' + x + ', ' + y + ')');
-  var grid = map.grids[pos];
   grid.empty = false; // 炸彈不能過
   grid.type = 'bomb';
   grid.bombingPower = bombingPower;
   grid.murderer = playerid;
   grid.bombPutTime = (new Date()).getTime(); // unix timestamp in milliseconds
+  bombingTimers[pos] = setTimeout(function () {
+    bombing(x, y);
+  }, 3000);
   sendObjToAllClient({
     event: 'bomb_put',
     x: x,
@@ -470,9 +469,6 @@ function putBomb(playerid, x, y, bombingPower) {
     murdererid: playerid,
     power: bombingPower
   });
-  grid.bombingTimer = setTimeout(function () {
-    bombing(x, y);
-  }, 3000);
 }
 
 function bombing(bombX, bombY) {
@@ -486,13 +482,14 @@ function bombing(bombX, bombY) {
     for(var i = 0; i < result.bombing.length; i++) {
         var curPos = result.bombing[i].pos;
         var grid = map.grids[curPos];
-        console.log("Bombing timer = "+grid.bombingTimer);
-        // In Node.js, setTimeout returns objects
-        if(grid.bombingTimer >= 1 || grid.bombingTimer instanceof Object) {
-            console.log("Clearing timer for bomb at "+util.posToStr(curPos));
-            clearTimeout(grid.bombingTimer);
-            grid.bombingTimer = 0;
+        // console.log("Bombing timer = "+bombingTimers[i]);
+        if(!util.isTimerObject(bombingTimers[curPos])) {
+            console.log('[Warning] invalid bombing timer');
+            console.log(bombingTimers[curPos]);
         }
+        console.log("Clearing timer for bomb at "+util.posToStr(curPos));
+        clearTimeout(bombingTimers[curPos]);
+        bombingTimers[curPos] = null;
     }
     for(var i = 0; i < result.wallBombed.length; i++) {
         if(Math.random() < 0.3) {
