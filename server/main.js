@@ -409,7 +409,10 @@ function toolappear_impl(getgrid) {
     });
     // Users may stand on the grid with new tool
     for(var i = 0; i < wsConnections.length; i++) {
-      checkEatTools(wsConnections[i].playerInfo);
+      var playerInfo = wsConnections[i].playerInfo;
+      if(!playerInfo.dead && !playerInfo.disconnected) {
+        checkEatTools(playerInfo);
+      }
     }
   }
   //console.log('tool');
