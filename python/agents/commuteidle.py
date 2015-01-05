@@ -23,7 +23,7 @@ class CommuteidleAgent(Agent):
         player.MoveAdvice=[]
         return False
 
-    def sendAdviceFriend(self,myID,friendID,advice):
+    def sendAdviceFriend(self,myID,friendID,advice,goal=None):
       '''This method implement send message to friend
          send advice (move,PutBomb) to friend
       '''
@@ -32,7 +32,8 @@ class CommuteidleAgent(Agent):
                 'event': 'Advice',
                 'myPlayerid': myID,
                 'friendPlayerid': friendID,
-                'Move': advice
+                'Move': advice,
+                'Goal': goal
       })
     def registerFriend(self,myID,friendID):
       util.commute_packet_queue.put({
