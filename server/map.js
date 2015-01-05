@@ -17,6 +17,8 @@ var directions = [ [0, 1], [0, -1], [1, 0], [-1, 0] ];
 
 var grids = _.times(util.grid_count, function () { return {}; });
 
+var bombingTimers = _.times(util.grid_count, function () { return null; });
+
 function loadMapFromFile (map_name)
 {
     var ret = Array(util.grid_count);
@@ -63,11 +65,11 @@ function iniMap(map_name)
     // clearing existing bombing timer first
     for(var i = 0; i < util.grid_count; i++)
     {
-        if(util.isTimerObject(grids[i].bombingTimer))
+        if(util.isTimerObject(bombingTimers[i]))
         {
             console.log("Clearing bomb timer at "+util.posToStr(i));
-            clearTimeout(grids[i].bombingTimer);
-            delete grids[i].bombingTimer;
+            clearTimeout(bombingTimers[i]);
+            bombingTimers[i] = null;
         }
     }
 
@@ -192,5 +194,6 @@ function bombing(gridX, gridY)
 module.exports = {
     'iniMap': iniMap,
     'grids': grids,
-    'bombing': bombing
+    'bombing': bombing,
+    'bombingTimers': bombingTimers
 };

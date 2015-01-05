@@ -9,7 +9,6 @@ var express = require('express');
 var commander = require('commander');
 var WebSocketServer = require('websocket').server;
 var colors = require('colors');
-var _ = require('underscore');
 
 var map = require('./map.js');
 var util = require('./util.js');
@@ -44,7 +43,6 @@ var __gameStarting = false; // 記錄是否已經輸入過 go 了
 var app = express.createServer();
 var wsConnections = [];
 
-var bombingTimers = _.times(util.grid_count, function () { return null; });
 
 app.configure(function () {
   app.use(express.errorHandler({
@@ -462,7 +460,7 @@ function putBomb(playerid, x, y, bombingPower) {
   grid.bombingPower = bombingPower;
   grid.murderer = playerid;
   grid.bombPutTime = (new Date()).getTime(); // unix timestamp in milliseconds
-  bombingTimers[pos] = setTimeout(function () {
+  map.bombingTimers[pos] = setTimeout(function () {
     bombing(x, y);
   }, 3000);
   sendObjToAllClient({
@@ -485,14 +483,14 @@ function bombing(bombX, bombY) {
     for(var i = 0; i < result.bombing.length; i++) {
         var curPos = result.bombing[i].pos;
         var grid = map.grids[curPos];
-        // console.log("Bombing timer = "+bombingTimers[i]);
-        if(!util.isTimerObject(bombingTimers[curPos])) {
+        // console.log("Bombing timer = "+map.bombingTimers[i]);
+        if(!util.isTimerObject(map.bombingTimers[curPos])) {
             console.log('[Warning] invalid bombing timer');
-            console.log(bombingTimers[curPos]);
+            console.log(map.bombingTimers[curPos]);
         }
         console.log("Clearing timer for bomb at "+util.posToStr(curPos));
-        clearTimeout(bombingTimers[curPos]);
-        bombingTimers[curPos] = null;
+        clearTimeout(map.bombingTimers[curPos]);
+        map.bombingTimers[curPos] = null;
     }
     for(var i = 0; i < result.wallBombed.length; i++) {
         if(Math.random() < 0.3) {

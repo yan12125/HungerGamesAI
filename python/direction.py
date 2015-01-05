@@ -42,6 +42,7 @@ class Direction(object):
             else:
                 return cls.UP
 
+
 def oppDirection(d):
     if d == Direction.UP:
         return Direction.DOWN

@@ -5,6 +5,7 @@ import ntplib
 import grid
 from task_loop import TaskLoop
 from compat import queue
+from colorama import Fore
 
 BASE_INTERVAL = 1/60
 
@@ -30,7 +31,7 @@ empty_linear_grid = [grid.Grid() for i in grid_gen]
 loop = TaskLoop()
 
 packet_queue = queue.Queue()
-commute_packet_queue=queue.Queue()
+commute_packet_queue = queue.Queue()
 
 client = ntplib.NTPClient()
 
