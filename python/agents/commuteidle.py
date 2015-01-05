@@ -16,6 +16,7 @@ class CommuteidleAgent(Agent):
         self.tryPutBomb(state,player)
       if state.moveValidForMe(move):
         print "Friend Advice",move
+        self.lastMove=move
         self.goMove(player,move)
         player.MoveAdvice=[]
         return True
@@ -38,11 +39,12 @@ class CommuteidleAgent(Agent):
                 'Move': advice,
                 'Goal': goal
       })
-    def registerFriend(self,myID,friendID):
+    def registerFriend(self,myID,friendID,goal="None"):
       util.commute_packet_queue.put({
               'event': 'register_friend',
               'myPlayerid': myID,
-              'friendPlayerid': friendID
+              'friendPlayerid': friendID,
+              'Goal': goal
       })
     def checkNone(self,player):
       if player.friendId==[]:
