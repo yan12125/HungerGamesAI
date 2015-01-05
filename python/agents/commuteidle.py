@@ -23,10 +23,13 @@ class CommuteidleAgent(Agent):
         player.MoveAdvice=[]
         return False
 
-    def sendAdviceFriend(self,myID,friendID,advice,goal=None):
+    def sendAdviceFriend(self,myID,friendID,advice,goal="None"):
       '''This method implement send message to friend
          send advice (move,PutBomb) to friend
       '''
+      if goal != "None" :
+        print "IFoundAGOAL\n\n\n\n"
+        print goal
 
       util.commute_packet_queue.put({
                 'event': 'Advice',
