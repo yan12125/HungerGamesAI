@@ -146,7 +146,7 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
             else :
               if state.posHasPlayer(pos):
                 __findPlayer.PosGeter = pos
-                print pos
+#                print pos
                 return True    
               else:
                 return False
@@ -157,7 +157,7 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
             return myMap.grids[pos].tool != 2
 
         def __judgeStrong(player):
-            if player.speed < 7 or player.bombLimit < 4 or player.bombPower < 4:
+            if player.speed < 5 or player.bombLimit < 2 or player.bombPower < 3:
                 return False
             else:
                 return True
@@ -191,6 +191,7 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
                 move = actions[0]
         else:
             actions = search.bfs(myMap, playerPos, __findPlayer, __findMiddleTool, player)
+            print "\n\n\n\nIFouncAGOAL"
             self.goalPos = __findPlayer.PosGeter
             if actions:
                 move = actions[0]
@@ -212,8 +213,8 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
 
         if not state.moveValidForMe(move) and judgePass > 0:
             centerX, centerY = util.posToCoord(playerPos)
-#            player.x = centerX
-#            player.y = centerY
+            player.x = centerX
+            player.y = centerY
             validMoves = state.validMovesForMe()
             if Direction.STOP in validMoves:
                 # Not always true. Eg., on a newly put bomb
