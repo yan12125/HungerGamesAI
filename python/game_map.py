@@ -18,7 +18,13 @@ class Map(object):
 
     def setGrids(self, remote_grids, remote_ntp_offset):
         local_ntp_offset = util.getNTPOffset()
-        print(Fore.MAGENTA+'Got NTP offset: remote=%f, local=%f' % (remote_ntp_offset, local_ntp_offset))
+        if isinstance(local_ntp_offset, float) and isinstance(remote_ntp_offset, float):
+            time_difference = remote_ntp_offset - local_ntp_offset
+            print(Fore.MAGENTA+'Got NTP offset: remote=%f, local=%f' % (remote_ntp_offset, local_ntp_offset))
+        else:
+            print(Fore.MAGENTA+'No valid NTP offsets found. Bomb timing may be inaccurate')
+            time_difference = 0
+
         for i in util.grid_gen:
             grid = self.grids[i]
             remote_grid = remote_grids[i]
@@ -30,7 +36,7 @@ class Map(object):
                 print('Initial tool %s at %s' % (toolname, util.gridStr(i)))
             elif grid.grid_type == Grid.BOMB:
                 grid.bombPower = remote_grid['bombingPower']
-                grid.bombPutTime = remote_grid['bombPutTime'] + remote_ntp_offset - local_ntp_offset
+                grid.bombPutTime = remote_grid['bombPutTime'] + time_difference
                 print('Initial bomb at %s, power = %d, time put = %f' % (util.gridStr(i), grid.bombPower, grid.bombPutTime))
         self.dumpGrids()
 
