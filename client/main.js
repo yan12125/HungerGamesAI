@@ -453,6 +453,10 @@ function webSocketInit(isObserver) {
             name: thisPlayer.name, 
             isObserver: isObserver
         });
+        if(isObserver) {
+            penetrate = true;
+            bomblimit = 0;
+        }
         document.getElementById('buttondiv').innerHTML='';
     };
 

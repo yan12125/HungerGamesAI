@@ -237,15 +237,15 @@ function newPlayer(connection) {
     **********************************************/
     if (obj.event === 'update_player_info') {
       // TODO 告訴這個使用者，現在哪些人在線上
-      if (obj.name) connection.playerInfo.name = obj.name;
+      connection.playerInfo.name = obj.name;
+      connection.playerInfo.isObserver = obj.isObserver;
       var playerInfoList = [];
       for (var i = 0; i < wsConnections.length; i++) {
-        if(!wsConnections[i].playerInfo.disconnected) {
+        var playerInfo = wsConnections[i].playerInfo;
+        if(!playerInfo.disconnected && !playerInfo.isObserver || connection == wsConnections[i]) {
           playerInfoList.push(wsConnections[i].playerInfo);
         }
       }
-
-      connection.playerInfo.isObserver = obj.isObserver;
 
       var _pos = -1;
 
@@ -363,6 +363,9 @@ function sendObjToClient(obj, playerConn) {
 }
 
 function checkEatTools(playerInfo) {
+  if (playerInfo.isObserver) {
+    return;
+  }
   var pos = gridCalc(playerInfo.x, playerInfo.y);
   if (map.grids[pos].type !== 'tool') {
     return;
