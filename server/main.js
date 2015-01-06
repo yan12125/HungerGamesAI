@@ -242,7 +242,7 @@ function newPlayer(connection) {
       var playerInfoList = [];
       for (var i = 0; i < wsConnections.length; i++) {
         var playerInfo = wsConnections[i].playerInfo;
-        if(!playerInfo.disconnected && !playerInfo.isObserver || connection == wsConnections[i]) {
+        if(!playerInfo.disconnected && !playerInfo.isObserver) {
           playerInfoList.push(wsConnections[i].playerInfo);
         }
       }
