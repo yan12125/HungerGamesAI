@@ -19,8 +19,8 @@ class Player(object):
         # Tools related parameters
         self.preparing = False
         self.speed = 5  # -1 indicated unknown
-        self.bombPower = 1
-        self.bombLimit = 1
+        self.bombPower = 20
+        self.bombLimit = 20
         self.bombCount = 0
         self.penetrate = False  # whether able to bypass walls
         self.god_mod = False  # not killed by bombs
