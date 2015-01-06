@@ -52,6 +52,7 @@ def bfs_common(game_map, startPos, criteria, pathCriteria, Player, N, find_succe
     frontier = [(startPos, [])]
     visited = set([startPos])
     while frontier:
+#        print frontier
         pos, path = frontier.pop(0)
         if criteria(pos):
             count += 1

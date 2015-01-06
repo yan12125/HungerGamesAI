@@ -34,7 +34,7 @@ class DodotestAgent(Agent):
             return safe_map[gridX][gridY]
           def __internal_safe_Time(pos):
             gridX, gridY = util.posToGrid(pos)
-            if bombTime>=0.2 : return True
+            if bombTime>=1.0/player.speed+0.05 : return True
             else :return safe_map[gridX][gridY]
           actions = search.bfs(state.game_map, playerPos, __internal_safe,__internal_safe_Time,Player=player)
           if actions:

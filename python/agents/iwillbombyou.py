@@ -81,7 +81,7 @@ class IwillbombyouAgent(Agent):
             actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
             if actions:
                 move = actions[0]
-            else:
+            elif actions == None:
                 return
 
         #print("Speed: %s, Limit: %s, Count: %s, Power: %s"\
