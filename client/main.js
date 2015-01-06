@@ -58,6 +58,9 @@ players.removePlayerById = function (uuid) {
 };
 
 players.setPositionById = function (uuid, x, y) {
+    if(uuid == thisPlayer.id) {
+        return;
+    }
     var _player = this.getPlayerById(uuid);
     _player.setX(x);
     _player.setY(y);
@@ -345,7 +348,12 @@ function gridCalc(x, y) {
 function myBlockColor(nowpos) {
     for (var i = 0; i < 169; i += 1) {
         if (i === nowpos) {
-            grids[i].classList.add('active');
+            if(map[i].type == 'bomb') {
+                grids[i].classList.remove('active');
+                grids[i].classList.add('bomb');
+            } else {
+                grids[i].classList.add('active');
+            }
         } else {
             grids[i].classList.remove('active');
         }
@@ -525,6 +533,7 @@ function webSocketInit(isObserver) {
         else if (obj.event === 'bomb_put') {
             var pos = obj.x + obj.y * 13;
             grids[pos].classList.add('bomb');
+            grids[pos].classList.remove('active');
             map[pos].type = 'bomb';
             map[pos].empty=true;
             var chkleave = setInterval(function(){
