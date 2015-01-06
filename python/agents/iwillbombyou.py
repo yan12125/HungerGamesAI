@@ -53,7 +53,7 @@ class IwillbombyouAgent(Agent):
         runActions = state.tryBombConsiderOthers(__trueCriteria)
         moveLenth = runActions[0]
         bombTime = state.findMinBombTime()
-        bombTime -= 0.2
+        bombTime -= 0.5
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth * util.grid_dimension
 
         if  (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
