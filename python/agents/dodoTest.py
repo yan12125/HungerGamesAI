@@ -165,8 +165,8 @@ class DodotestAgent(Agent):
 #          self.threshingDetectNum+=9
 #      print count, action
       if state.game_map.gridIs(newGridPos, Grid.TOOL):
-        if player.speed >=5 and state.game_map.grids[newGridPos].tool==2:
-          score -= 10000 
+#        if player.speed >=5 and state.game_map.grids[newGridPos].tool==2:
+#          score -= 10000 
         score +=5000.0
       else:
         score -= 300*count
@@ -204,8 +204,9 @@ class DodotestAgent(Agent):
            tempPos = successorGameState.getPlayerPosition(newOtherPlayer.player_id)
            tempGridPos=util.coordToPos(tempPos[0],tempPos[1]) 
            newWayOut.append(successorGameState.game_map.moreWayAroundPos(tempGridPos,newOtherPlayer))
-         diff = min([a-b for a,b in zip(newWayOut,WayOut)])
-
+         diff = 10
+         if zip(newWayOut,WayOut):
+            diff = min([a-b for a,b in zip(newWayOut,WayOut)])
 
 
          count_Player=search.bfs_count(successorGameState.game_map, newGridPos,__findPlayer,Player=player,N=40)

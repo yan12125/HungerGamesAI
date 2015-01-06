@@ -39,6 +39,28 @@ class IwillbombyoulistenAgent(CommuteidleAgent):
           self.listen(state,friendId)
           if friendId!= "None":
             self.hasFriend=True
+        if not state.moveValidForMe(move):
+            validMoves = state.validMovesForMe()
+            if Direction.STOP in validMoves:
+                # Not always true. Eg., on a newly put bomb
+                validMoves.remove(Direction.STOP)
+            if not validMoves:
+                print('Error: no valid moves')
+                return
+            if player.goalPos == None:
+              move = random.choice(validMoves)
+            else:
+              self.goalPos=None
+              print "\n\n\n\nGoFindPlayer\n\n\n\n"
+              dis = float("INF")
+              goalCoord = util.posToCoord(player.goalPos)
+              for item in validMoves:
+                newCoord = player.newCoord(item)
+                tempDis=util.manhattanDistance(goalCoord,newCoord)
+                if tempDis<dis:
+                  temp=dis
+                  move=item
+
 
         def __internal_safe(pos):
             gridX, gridY = util.posToGrid(pos)
@@ -78,92 +100,72 @@ class IwillbombyoulistenAgent(CommuteidleAgent):
             return p != player
         def __trueCriteria(p):
             return True
+        if self.hasFriend:
+          
+          runActions = state.tryBombConsiderOthers(__trueCriteria,friendId)
+          print move
+        else:  
 
-        moveLenth = state.tryBombConsiderOthers(__trueCriteria)
-        if player.bombCount > 4:
-            bombTime -= 1.0
-        else:
-            bombTime -=0.5
-        judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth[0] * util.grid_dimension
+          runActions = state.tryBombConsiderOthers(__trueCriteria)
+        moveLenth = runActions[0]
+        bombTime = state.findMinBombTime()
+        judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth* util.grid_dimension
         if not self.hasFriend:
           friendID=deepcopy(state.me().thisPlayer_id)
-        if  moveLenth[0] != util.map_dimension ** 2 and\
-            (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
+        if  (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos,friendID=friendId) or state.bombThing(playerPos, Grid.VWALL))and\
+            myMap.grids[playerPos].canPass() and\
             judgePass > 0:
 
             if player.MoveAdvice:
               if self.ActByAdvice(state,player):
-                  return
+                print("XD")
+                return
               else:
                 player.MoveAdvice=[]  
             self.tryPutBomb(state, player)
-        if not __judgeStrong(player):
-            actions = search.bfs(myMap, playerPos, __findTool, __findMiddleTool, player)
-            if actions:
-                move = actions[0]
-        else:
-            actions = search.bfs(myMap, playerPos, __findPlayer, __findMiddleTool, player)
-            if player.goalPos == None:
-                print "\n\n\n\n", self.goalPos
-                self.goalPos = __findPlayer.PosGeter
-            if actions:
-                move = actions[0]
 
-        if judgePass < 0:
-            if moveLenth[0] == util.map_dimension ** 2:
-                actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
-            else:
-                actions = state.tryBombConsiderOthers(__othersCriteria)[1]
-
-            if actions:
-                move = actions[0]
-            else:
-                return
-
-        print("Speed: %s, Limit: %s, Count: %s, Power: %s"\
-        %(player.speed, player.bombLimit, player.bombCount, player.bombPower))
-        print("JudgePass: %s, Action: %s, Move: %s" %(judgePass, actions, move))
-
-        if not state.moveValidForMe(move) and judgePass > 0:
-            centerX, centerY = util.posToCoord(playerPos)
-            player.x = centerX
-            player.y = centerY
-            validMoves = state.validMovesForMe()
-            if Direction.STOP in validMoves:
-                # Not always true. Eg., on a newly put bomb
-                validMoves.remove(Direction.STOP)
-            if not validMoves:
-                print('Error: no valid moves')
-                return
-            if validMoves:
-              if player.goalPos == None:
-                move = random.choice(validMoves)
-              else:
-                self.goalPos=None
-                print "\n\n\n\nGoFindPlayer\n\n\n\n"
-                dis = float("INF")
-                goalCoord = util.posToCoord(player.goalPos)
-                for item in validMoves:
-                  newCoord = player.newCoord(item)
-                  tempDis=util.manhattanDistance(goalCoord,newCoord)
-                  if tempDis<dis: 
-                    temp=dis
-                    move=item
-                  
         distance = Direction.distances[move]
         gridX, gridY = util.coordToGrid(player.x, player.y)
         newX = gridX + distance[0]
         newY = gridY + distance[1]
         newP = util.gridToPos(newX, newY)
-        if (myMap.wayAroundPos(newP, player) == 0) and judgePass > 0:
-            for d in Direction.ALL:
-                dis = Direction.distances[d]
-                nX = gridX + dis[0]
-                nY = gridY + dis[1]
-                nP = util.gridToPos(nX, nY)
-                if myMap.wayAroundPos(nP) > 0:
-                    move = d
-                    break;
-        self.lastMove = move
+        if judgePass > 0 and myMap.wayAroundPos(newP, player) > 0:
+            if not __judgeStrong(player):
+                actions = search.bfs(myMap, playerPos, __findTool, __findMiddleTool, player)
+                if actions:
+                    move = actions[0]
+            else:
+                actions = search.bfs(myMap, playerPos, __findPlayer, __findMiddleTool, player)
+                if actions:
+                    move = actions[0]
+
+        if judgePass < 0 or myMap.wayAroundPos(newP, player) == 0:
+            actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
+            if actions:
+                move = actions[0]
+            else:
+                return
+        if not state.moveValidForMe(move):
+            distance = Direction.distances[move]
+            destPos = util.gridToPos(gridX + distance[0], gridY + distance[1])
+
+            def __toGrid(coord):
+                return destPos == util.coordToPos(*coord)
+
+            startCoord = (player.x, player.y)
+            actions = search.bfsPixel(state.game_map, startCoord, __toGrid, Player=player)
+            if actions:
+                move = actions[0]
+            else:
+                print("Can't reach dest grid")
+                return
+
+            if not state.moveValidForMe(move):
+                raise Exception('Unexpected: move %s should be valid' % move)
+
+        print("JudgePass: %s, Action: %s, Move: %s" %(judgePass, actions, move))
         self.goMove(player, move)
+        self.lastMove = move
+
+
