@@ -57,7 +57,10 @@ def handle_messages(event, data):
     elif event == 'bombing':
         for oneBomb in data['bombing']:
             murderer_id = str(oneBomb['murdererid'])
-            state.players[murderer_id].bombCount -= 1
+            if murderer_id not in state.players:
+                print('Warning: murder %s disconnected' % murderer_id)
+            else:
+                state.players[murderer_id].bombCount -= 1
             state.game_map.bombing(oneBomb['pos'])
 
         for oneGrid in data['gridBombed']:
