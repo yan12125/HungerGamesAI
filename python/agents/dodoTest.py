@@ -28,7 +28,7 @@ class DodotestAgent(Agent):
 #        print state.game_map.wayAroundPos(playerPos,player)
 
         if ((not safe_map[gridX][gridY]) and bombTime<=2.2) or (state.game_map.wayAroundPos(playerPos,player)==0 and  bombTime<=2.5):
-          print "save"
+#          print "save"
           def __internal_safe(pos):
             gridX, gridY = util.posToGrid(pos)
             return safe_map[gridX][gridY]
@@ -40,7 +40,7 @@ class DodotestAgent(Agent):
           if actions:
             move = actions[0]
           else:
-              print("NO safe grid")
+#              print("NO safe grid")
               return 
 
           if state.moveValidForMe(actions[0]):
@@ -55,7 +55,7 @@ class DodotestAgent(Agent):
           if actions:
             move=actions[0]
           else:
-            print("Cannot reach dest grid")
+#            print("Cannot reach dest grid")
             return
           if not state.moveValidForMe(move):
             raise Exception('Unexpected: move %s should be valid' % move)
@@ -71,7 +71,7 @@ class DodotestAgent(Agent):
           self.threshingDetectNum=0
           self.threshingDetect=False
         if self.threshingDetect:
-          print "tesst"
+#          print "tesst"
           self.goMove(player,random.choice(legalMoves))
           self.threshingDetectNum -= 1
 #          print self.threshingDetect, self.threshingDetectNum
@@ -80,7 +80,7 @@ class DodotestAgent(Agent):
 
 
         scores=[self.EvaluationFunction(state,action) for action in legalMoves]
-        print scores, legalMoves
+#        print scores, legalMoves
         if not scores: return
         bestScore=max(scores,key=lambda item: item[0])[0]
 #        bestScore=max(scores)
@@ -95,8 +95,8 @@ class DodotestAgent(Agent):
           self.threshingDetectNum=0
 #        if (not safe_map[gridX][gridY])and bombTime<=0.5
 #            self.threshingDetectNum+=10
-        print("Speed: %s, Limit: %s, Count: %s, Power: %s"\
-                %(player.speed, player.bombLimit, player.bombCount, player.bombPower))
+#        print("Speed: %s, Limit: %s, Count: %s, Power: %s"\
+#                %(player.speed, player.bombLimit, player.bombCount, player.bombPower))
 
         distance = Direction.distances[action]
         newGridPosXY=(gridX+distance[0],gridY+distance[1])
@@ -191,7 +191,7 @@ class DodotestAgent(Agent):
 ###############Start Hunting other Player################
 
       if player.bombLimit>=4 and player.bombPower>=3 and player.speed>=6:
-         print "HunterMode"
+#         print "HunterMode"
          def __findPlayer(pos):
             return successorGameState.posHasPlayer(pos)        
          WayOut=[]
