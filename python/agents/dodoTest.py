@@ -13,6 +13,7 @@ class DodotestAgent(Agent):
         self.lastMoveCounter=6
         self.threshingDetect=False
         self.threshingDetectNum=0
+        self.ableToBomb=[(None,None),True]
 #        self.bombGrid=[]
 
     def once(self, state):
@@ -83,9 +84,11 @@ class DodotestAgent(Agent):
         newGridPosXY=(gridX+distance[0],gridY+distance[1])
         self.goMove(player,legalMoves[chosenIndex])
         self.lastMove=legalMoves[chosenIndex]
-        if scores[chosenIndex][1]==True :
+        if util.coordToPos(player.x,player.y) != self.ableToBomb[0]: self.ableToBomb=[None,True]
+        if scores[chosenIndex][1]==True and self.ableToBomb[1]==True:
 #          and util.coordToGrid(player.x,player.y)==newGridPosXY:
           self.tryPutBomb(state, player)
+          self.ableToBomb=[util.coordToPos(player.x, player.y),False]
           return 
 #        print legalMoves[chosenIndex]
 
@@ -122,7 +125,7 @@ class DodotestAgent(Agent):
         return successorGameState.game_map.gridIs(pos,Grid.TOOL)
 
 
-      count=search.bfs_count(state.game_map, newGridPos, __findTool,__internal_safe,N=numberofIt)
+      count=search.bfs_count(state.game_map, newGridPos, __findTool,__internal_safe,Player=player,N=numberofIt)
       ###IF No Tool Found Try put some bomb#########
       if ((count>=numberofIt+50 and state.game_map.safeMapAroundPos(newGridPos))or \
           (count>=numberofIt+50 and successorGameState.bombPlayer(newGridPos))):
@@ -162,7 +165,7 @@ class DodotestAgent(Agent):
 
 
 
-         count_Player=search.bfs_count(successorGameState.game_map, newGridPos,__findPlayer,N=40)
+         count_Player=search.bfs_count(successorGameState.game_map, newGridPos,__findPlayer,Player=player,N=40)
          if count_Player <= 40:
 #            print "tureHunter"
             if count_Player!=0:
@@ -201,7 +204,7 @@ class DodotestAgent(Agent):
       '''
       if not safe_map[newGridPosXY[0]][newGridPosXY[1]] and \
             (bombTime <= 2 or state.game_map.wayAroundPos(GridPos,player)<=2):
-        count2=search.bfs_count(successorGameState.game_map, newGridPos, __internal_safe,N=1)
+        count2=search.bfs_count(successorGameState.game_map, newGridPos, __internal_safe,Player=player,N=1)
         score -= 100000
         score -= 1000*count2
       if putBomb==True:
