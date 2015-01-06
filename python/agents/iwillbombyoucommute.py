@@ -58,6 +58,12 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
             (state.bombPlayer(playerPos,friendId) or state.bombThing(playerPos, Grid.VWALL))and\
             judgePass > 0:
             putBomb=True
+        if self.goalPos != None and putBomb == False:
+            if  moveLenth[0] != util.map_dimension ** 2 and\
+            (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
+            (state.bombPlayer(playerPos,friendId) or state.bombThing(playerPos, Grid.VWALL) or state.bombNearPlayer(playerPos,friendId,self.goalPos))and\
+            judgePass > 0:
+              putBomb=True
         if not __judgeStrong(player):
             actions = search.bfs(myMap, playerPos, __findTool, __findMiddleTool, player)
             if actions:
