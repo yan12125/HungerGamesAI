@@ -75,7 +75,7 @@ def bfsPixel(game_map, start, criteria, pathCriteria=lambda pos: True, Player=Pl
     return bfs_common(game_map, start, criteria, pathCriteria, Player, N, find_successors_pixel)
 
 
-def bfs_count(game_map, startPos, criteria,pathCriteria=lambda pos: True, N=20):
+def bfs_count(game_map, startPos, criteria,pathCriteria=lambda pos: True, Player= Player(-1, "test"), N=20):
     frontier = [(startPos, [])]
     visited = set([startPos])
     while True:
@@ -85,7 +85,7 @@ def bfs_count(game_map, startPos, criteria,pathCriteria=lambda pos: True, N=20):
           return len(path)
         if len(path)==N:
           return N+10
-        successors = find_successors(game_map, *util.posToGrid(pos))
+        successors = find_successors_grid(game_map, pos,Player)
         for direction, newPos in successors:
             if newPos in visited:
                 continue
