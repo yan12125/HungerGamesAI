@@ -47,13 +47,13 @@ class IwillbombyouAgent(Agent):
             else:
                 return True
 
-        runActions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
-        if runActions == None:
-            moveLenth = util.map_dimension ** 2
-        else:
-            moveLenth = len(runActions)
+        def __trueCriteria(p):
+            return True
+
+        runActions = state.tryBombConsiderOthers(__trueCriteria)
+        moveLenth = runActions[0]
         bombTime = state.findMinBombTime()
-        bombTime -= 0.2
+        bombTime -= 1
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth * util.grid_dimension
 
         if  (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
@@ -78,8 +78,8 @@ class IwillbombyouAgent(Agent):
                     move = actions[0]
 
         if judgePass < 0 or myMap.wayAroundPos(newP, player) == 0:
-            if runActions:
-                actions = runActions
+            actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
+            if actions:
                 move = actions[0]
             else:
                 return
