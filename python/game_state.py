@@ -85,17 +85,18 @@ class GameState(object):
             playerPositions = []
 
         for player_id, player in self.players.items():
-            playerPos = util.coordToPos(player.x, player.y)
+            if not player.dead:
+                playerPos = util.coordToPos(player.x, player.y)
 
-            if util.DEBUG:
-                playerPositions.append(playerPos)
-            if friendID ==None:
-              if pos == playerPos and player != self.players[playerID]:
-                return True 
-            else:
-              if pos == playerPos and player != self.players[playerID]\
-                 and player != self.players[friendID]:
-                return True
+                if util.DEBUG:
+                    playerPositions.append(playerPos)
+                if friendID ==None:
+                  if pos == playerPos and player != self.players[playerID]:
+                    return True
+                else:
+                  if pos == playerPos and player != self.players[playerID]\
+                     and player != self.players[friendID]:
+                    return True
 
         if util.DEBUG:
             print(playerPositions, pos)
@@ -127,14 +128,15 @@ class GameState(object):
                         break
                     __markAsBomb(newX, newY)
         for play_id, player in self.players.items():
-            gridX, gridY = util.coordToGrid(player.x, player.y)
-            if friendID!=None:
-              if bomb_map[gridX][gridY] and player.player_id != me.player_id\
-                and player.player_id!=friendID:
-                return True
-            else:
-              if bomb_map[gridX][gridY] and player.player_id != me.player_id:
-                return True
+            if not player.dead:
+                gridX, gridY = util.coordToGrid(player.x, player.y)
+                if friendID!=None:
+                  if bomb_map[gridX][gridY] and player.player_id != me.player_id\
+                    and player.player_id!=friendID:
+                    return True
+                else:
+                  if bomb_map[gridX][gridY] and player.player_id != me.player_id:
+                    return True
         return False
 
 
@@ -201,15 +203,16 @@ class GameState(object):
             return safeMap[gridX][gridY]
 
         for player_id, player in self.players.items():
-            if criteria(player):
+            if criteria(player) and not player.dead:
                 gridX, gridY = util.coordToGrid(player.x, player.y)
                 pos = util.coordToPos(player.x, player.y)
-                grid = Grid()
-                grid.bombPower = player.bombPower
-                grid.grid_type = grid.BOMB
-                grid.bombPutTime = time.time()
-                bombs.append((pos, grid))
-                gameMap.grids[pos] = grid
+                if gameMap.grids[pos].canPass():
+                    grid = Grid()
+                    grid.bombPower = player.bombPower
+                    grid.grid_type = grid.BOMB
+                    grid.bombPutTime = time.time()
+                    bombs.append((pos, grid))
+                    gameMap.grids[pos] = grid
 
         for i, grid in bombs:
             gridX, gridY = util.posToGrid(i)
