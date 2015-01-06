@@ -34,11 +34,16 @@ class IwillbombyoulistenAgent(CommuteidleAgent):
 #        print player.friendId
         self.checkValidId(player.friendId,state)
         bombTime = state.findMinBombTime()
+        bombTime -= 0.5
         if player.friendId:
           friendId=player.friendId[0]
           self.listen(state,friendId)
           if friendId!= "None":
             self.hasFriend=True
+        else:
+            self.hasFriend=False
+        if friendId=="None":
+            self.hasFriend=False
         if not state.moveValidForMe(move):
             validMoves = state.validMovesForMe()
             if Direction.STOP in validMoves:
@@ -102,20 +107,21 @@ class IwillbombyoulistenAgent(CommuteidleAgent):
             return True
         if self.hasFriend:
           
-          runActions = state.tryBombConsiderOthers(__trueCriteria,friendId)
+          runActions = state.tryBombConsiderOthers(__trueCriteria)
           print move
         else:  
 
           runActions = state.tryBombConsiderOthers(__trueCriteria)
         moveLenth = runActions[0]
         bombTime = state.findMinBombTime()
+        bombTime -=0.5
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth* util.grid_dimension
         if not self.hasFriend:
-          friendID=deepcopy(state.me().thisPlayer_id)
+          friendId=deepcopy(state.me().thisPlayer_id)
         if  (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos,friendID=friendId) or state.bombThing(playerPos, Grid.VWALL))and\
             myMap.grids[playerPos].canPass() and\
-            judgePass > 0:
+            judgePass > 0 and not state.bombMyFriend(playerPos,friendID=friendId):
 
             if player.MoveAdvice:
               if self.ActByAdvice(state,player):

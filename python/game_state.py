@@ -163,8 +163,12 @@ class GameState(object):
                     __markAsBomb(newX, newY)
             gridX1, gridY1 = util.coordToGrid(self.players[friendID].x,\
                  self.players[friendID].y)
-            if bomb_map[gridX1][gridY1]:
-                return True
+            plusAndMinus = [(0,0),(-1, 0), (1, 0), (0, -1), (0, 1)]
+            pointAroundMe = \
+                [(gridX1 + x, gridY1 + y) for x, y in plusAndMinus if Map.gridInMap(gridX + x, gridY + y)]
+            for item in pointAroundMe:
+              if bomb_map[item[0]][item[1]]:
+                  return True
         return False
 
 

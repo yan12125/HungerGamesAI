@@ -68,7 +68,7 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         if  (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos,friendId) or state.bombThing(playerPos, Grid.VWALL))and\
             myMap.grids[playerPos].canPass()and \
-            judgePass > 0:
+            judgePass > 0 and not state.bombMyFriend(playerPos,friendID=state.me().thisPlayer_id):
             putBomb=True
 
 
@@ -208,12 +208,12 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         def __trueCriteria(p):
             return True
         if player.friendId:
-          runActions = state.tryBombConsiderOthers(__trueCriteria,friendId)
+          runActions = state.tryBombConsiderOthers(__trueCriteria)
         else:
           runActions = state.tryBombConsiderOthers(__trueCriteria)
         moveLenth = runActions[0]
         bombTime = state.findMinBombTime()
-        bombTime -= 0.5
+        bombTime -= 0.7
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth* util.grid_dimension
         if not self.hasFriend:
           friendId=state.me().thisPlayer_id
