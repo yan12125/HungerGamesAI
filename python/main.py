@@ -73,6 +73,7 @@ def main():
     parser.add_argument('-a', dest='agentName', default='idle')
     parser.add_argument('-p', dest='posReq', default=None)
     parser.add_argument('-f', dest='friendAgentName',default=None)
+    parser.add_argument('-i', dest='host_ip', default='127.0.0.1')
     options = parser.parse_args()
     current_agent = load_agent(options.agentName)
 
@@ -89,7 +90,7 @@ def main():
         posReq = None
 
     try:
-        addr = 'ws://127.0.0.1:3000/'
+        addr = 'ws://%s:3000/' % options.host_ip
         ws = WebSocketHandler(myname, posReq, addr, ['game-protocol'])
         ws.connect()
         run_agent(current_agent)
