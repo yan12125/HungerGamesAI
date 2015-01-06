@@ -53,7 +53,7 @@ class IwillbombyouAgent(Agent):
         runActions = state.tryBombConsiderOthers(__trueCriteria)
         moveLenth = runActions[0]
         bombTime = state.findMinBombTime()
-        bombTime -= 1
+        bombTime -= 0.2
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth * util.grid_dimension
 
         if  (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
@@ -81,7 +81,7 @@ class IwillbombyouAgent(Agent):
             actions = search.bfs(myMap, playerPos, __internal_safe, Player = player)
             if actions:
                 move = actions[0]
-            elif actions == None:
+            else:
                 return
 
         #print("Speed: %s, Limit: %s, Count: %s, Power: %s"\
@@ -105,6 +105,6 @@ class IwillbombyouAgent(Agent):
             if not state.moveValidForMe(move):
                 raise Exception('Unexpected: move %s should be valid' % move)
 
-        print("JudgePass: %s, Action: %s, Move: %s" %(judgePass, actions, move))
+        #print("JudgePass: %s, Action: %s, Move: %s" %(judgePass, actions, move))
         self.goMove(player, move)
         self.lastMove = move

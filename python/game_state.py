@@ -265,10 +265,10 @@ class GameState(object):
         me = self.players[playid]
         startPos = util.coordToPos(me.x, me.y)
         path = search.bfs(gameMap, startPos, __internal_safe, Player = me)
-        if path:
-            return (len(path), path)
-        else:
+        if path == None:
             return (util.map_dimension ** 2, path)
+        else:
+            return (len(path), path)
 
     def checkLeave(self, pos):
         # Only myself requires checking. Each client handles himself/herself
