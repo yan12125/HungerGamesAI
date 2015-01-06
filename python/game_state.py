@@ -8,6 +8,7 @@ import time
 import search
 
 
+
 class GameState(object):
     # Static
     current = None
@@ -134,7 +135,40 @@ class GameState(object):
             if bomb_map[x][y]:
                 return True
         return False
+    def bombMyFriend(self,pos,ID=None,friendID=None):
+        if ID==None:
+          ID=deepcopy(Player.thisPlayer_id)
+        if friendID==ID:
+          return False
+        me = self.players[ID]
+        bomb_map = util.linearGridToMap([False for i in util.grid_gen])
 
+        def __markAsBomb(gridX, gridY):
+            if not Map.gridInMap(gridX, gridY):
+                return
+            bomb_map[gridX][gridY] = True
+
+        gridX, gridY = util.posToGrid(pos)
+        for direction in Direction.ALL:
+            if direction == Direction.STOP:
+                __markAsBomb(gridX, gridY)
+            else:
+                for i in range(0, me.bombPower):
+                    distance = Direction.distances[direction]
+                    newX = gridX + distance[0] * (i+1)
+                    newY = gridY + distance[1] * (i+1)
+                    newP = util.gridToPos(newX, newY)
+                    if Map.gridInMap(newX, newY) and self.game_map.gridIs(newP, Grid.NVWALL):
+                        break
+                    __markAsBomb(newX, newY)
+            gridX1, gridY1 = util.coordToGrid(self.players[friendID].x,\
+                 self.players[friendID].y)
+            if bomb_map[gridX1][gridY1]:
+                return True
+        return False
+
+
+        
 
     def bombPlayer(self, pos, ID=None,friendID=None):
         if ID==None:

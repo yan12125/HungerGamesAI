@@ -217,10 +217,11 @@ class IwillbombyoucommuteAgent(CommuteidleAgent):
         judgePass = bombTime * player.speed / util.BASE_INTERVAL - moveLenth* util.grid_dimension
         if not self.hasFriend:
           friendId=state.me().thisPlayer_id
+        print state.bombMyFriend(playerPos,friendID=friendId)
         if  (not state.bombThing(playerPos, Grid.TOOL) or __judgeStrong(player)) and\
             (state.bombPlayer(playerPos,friendID=friendId) or state.bombThing(playerPos, Grid.VWALL))and\
             myMap.grids[playerPos].canPass() and \
-            judgePass > 0 :
+            judgePass > 0 and not state.bombMyFriend(playerPos,friendID=friendId):
             self.tryPutBomb(state, player)
         distance = Direction.distances[move]
         gridX, gridY = util.coordToGrid(player.x, player.y)
