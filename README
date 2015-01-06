@@ -28,6 +28,12 @@ How to run python client?
     cd python/
     python2 main.py -a [agent name]
 
+How to run communicate client?
+    cd python/
+    python2 CommuteServer.py 
+    python2 main.py -a iwillbombyoulisten -f None
+    python2 main.py -a iwillbombyoucommute -f [listener's id]
+
 Agents are below the agents/ directory. See existing files as examples
 
 Existing agents:
